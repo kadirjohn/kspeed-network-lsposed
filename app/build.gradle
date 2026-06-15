@@ -18,8 +18,8 @@ android {
         applicationId 'com.nogrep.netspeed'
         minSdk 31          // Android 12 — BatteryMeterView lives in com.android.systemui.battery since API 31
         targetSdk 36       // Android 16
-        versionCode 2
-        versionName '1.0.1'
+        versionCode 3
+        versionName '1.0.2'
     }
 
     signingConfigs {

@@ -1,7 +1,7 @@
 # Net Speed Indicator
 
-[![Release](https://img.shields.io/github/v/release/zazaulola/magisk-network-indicator?sort=semver)](https://github.com/zazaulola/magisk-network-indicator/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/zazaulola/magisk-network-indicator/total)](https://github.com/zazaulola/magisk-network-indicator/releases)
+[![Release](https://img.shields.io/github/v/release/zazaulola/lsposed-netspeed-indicator?sort=semver)](https://github.com/zazaulola/lsposed-netspeed-indicator/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/zazaulola/lsposed-netspeed-indicator/total)](https://github.com/zazaulola/lsposed-netspeed-indicator/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Android](https://img.shields.io/badge/Android-12%E2%80%9316-3DDC84?logo=android&logoColor=white)
 
@@ -38,7 +38,7 @@ Magisk ──> Zygisk ──> LSPosed (or Vector) ──> THIS module (hooks Sys
 ## Install
 
 1. Download the latest **`app-release.apk`** from the
-   [**Releases**](https://github.com/zazaulola/magisk-network-indicator/releases/latest) page and
+   [**Releases**](https://github.com/zazaulola/lsposed-netspeed-indicator/releases/latest) page and
    install it (`adb install -r app-release.apk` or via a file manager).
 2. Open the **LSPosed / Vector manager → Modules**, enable **Net Speed Indicator**.
 3. Open its **Scope** and tick **System UI** (auto-suggested via `xposedscope`).
