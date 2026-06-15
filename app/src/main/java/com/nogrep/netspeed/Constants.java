@@ -12,6 +12,14 @@ public final class Constants {
 
     public static final String LOG_TAG = "[NetSpeed]";
 
+    // Update check (GitHub Releases)
+    public static final String REPO = "zazaulola/magisk-network-indicator";
+    public static final String RELEASES_API = "https://api.github.com/repos/" + REPO + "/releases/latest";
+    public static final String RELEASES_PAGE = "https://github.com/" + REPO + "/releases/latest";
+    public static final String REPO_PAGE = "https://github.com/" + REPO;
+    public static final String APP_PREFS = "netspeed_app"; // app-only state (last update check)
+    public static final String KEY_LAST_UPDATE_CHECK = "last_update_check";
+
     // Preference keys
     public static final String KEY_ENABLED        = "enabled";
     public static final String KEY_MODE           = "mode";            // both | combined | down

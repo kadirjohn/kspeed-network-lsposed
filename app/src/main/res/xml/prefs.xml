@@ -129,4 +129,19 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/cat_about">
+
+        <Preference
+            app:key="check_update"
+            app:persistent="false"
+            app:title="@string/pref_check_update_title" />
+
+        <Preference
+            app:key="view_source"
+            app:persistent="false"
+            app:title="@string/pref_source_repo_title"
+            app:summary="github.com/zazaulola/magisk-network-indicator" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>
