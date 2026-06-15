@@ -1,0 +1,22 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        // Classic Xposed API (de.robv.android.xposed:api:82) lives here.
+        maven { url 'https://api.xposed.info/' }
+        // Fallback mirror occasionally used for the same artifact.
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.name = 'NetSpeedIndicator'
+include ':app'

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Net Speed Indicator</string>
+    <string name="xposed_desc">Shows live network up/down speed in the status bar, left of the battery. Scope: SystemUI.</string>
+
+    <!-- Category titles -->
+    <string name="cat_general">General</string>
+    <string name="cat_display">Display</string>
+    <string name="cat_appearance">Appearance</string>
+
+    <!-- Preference titles / summaries -->
+    <string name="pref_enabled_title">Enable indicator</string>
+    <string name="pref_enabled_summary">Show the network speed indicator in the status bar</string>
+
+    <string name="pref_mode_title">Display mode</string>
+    <string name="pref_unit_title">Units</string>
+    <string name="pref_interval_title">Refresh interval</string>
+
+    <string name="pref_show_unit_title">Show unit label</string>
+    <string name="pref_show_unit_summary">Append KB/s, MB/s … to the value. Applies to fixed units; with an Auto unit the label is always shown to avoid ambiguity.</string>
+
+    <string name="pref_hide_idle_title">Hide when idle</string>
+    <string name="pref_hide_idle_summary">Hide the indicator when traffic is below the threshold</string>
+    <string name="pref_idle_threshold_title">Idle threshold (KB/s)</string>
+
+    <string name="pref_text_size_title">Text size (sp)</string>
+
+    <string name="pref_color_mode_title">Color</string>
+    <string name="pref_custom_color_title">Custom color — download (hex)</string>
+    <string name="pref_custom_color_summary">e.g. #FFFFFF — used only when Color = Custom</string>
+    <string name="pref_custom_color_ul_title">Custom color — upload (hex)</string>
+    <string name="pref_custom_color_ul_summary">e.g. #80C0FF — used only when Color = Custom</string>
+
+    <string name="pref_source_title">Traffic source</string>
+    <string name="pref_up_top_title">Show upload on top</string>
+    <string name="pref_up_top_summary">Swap the order: upload line above download</string>
+    <string name="pref_dim_zero_title">Dim arrow when idle</string>
+    <string name="pref_dim_zero_summary">Show the ▲/▼ icon semi-transparent when that direction is 0</string>
+
+    <string name="cat_surfaces">Where to show</string>
+    <string name="pref_show_shade_title">Show in notification shade</string>
+    <string name="pref_show_shade_summary">Also place the indicator in the expanded shade / Quick Settings header</string>
+    <string name="pref_show_lockscreen_title">Show on lock screen</string>
+    <string name="pref_show_lockscreen_summary">Also place the indicator on the lock screen status bar</string>
+
+    <string name="hint_restart">Changes apply within one refresh interval. If the indicator does not appear, restart SystemUI (or reboot) after enabling the module in LSPosed and selecting the SystemUI scope.</string>
+</resources>

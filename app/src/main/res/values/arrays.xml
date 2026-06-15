@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LSPosed scope: only hook SystemUI -->
+    <string-array name="xposed_scope">
+        <item>com.android.systemui</item>
+    </string-array>
+
+    <!-- Display mode -->
+    <string-array name="mode_entries">
+        <item>Down + Up (two lines)</item>
+        <item>Combined (single value)</item>
+        <item>Download only</item>
+    </string-array>
+    <string-array name="mode_values">
+        <item>both</item>
+        <item>combined</item>
+        <item>down</item>
+    </string-array>
+
+    <!-- Units: "auto_*" pick the magnitude per value (label always shown); the rest are fixed
+         magnitudes so the bare number is unambiguous even with the unit label hidden. -->
+    <string-array name="unit_entries">
+        <item>Auto (B/s, KB/s, MB/s)</item>
+        <item>Auto (bit/s, Kbit/s, Mbit/s)</item>
+        <item>KB/s (fixed)</item>
+        <item>MB/s (fixed)</item>
+        <item>Kbit/s (fixed)</item>
+        <item>Mbit/s (fixed)</item>
+    </string-array>
+    <string-array name="unit_values">
+        <item>auto_bytes</item>
+        <item>auto_bits</item>
+        <item>kbs</item>
+        <item>mbs</item>
+        <item>kbits</item>
+        <item>mbits</item>
+    </string-array>
+
+    <!-- Refresh interval -->
+    <string-array name="interval_entries">
+        <item>0.5 s</item>
+        <item>1 s</item>
+        <item>2 s</item>
+        <item>3 s</item>
+    </string-array>
+    <string-array name="interval_values">
+        <item>500</item>
+        <item>1000</item>
+        <item>2000</item>
+        <item>3000</item>
+    </string-array>
+
+    <!-- Traffic source -->
+    <string-array name="source_entries">
+        <item>Total (all networks)</item>
+        <item>Wi-Fi only</item>
+        <item>Cellular only</item>
+    </string-array>
+    <string-array name="source_values">
+        <item>total</item>
+        <item>wifi</item>
+        <item>cellular</item>
+    </string-array>
+
+    <!-- Color mode -->
+    <string-array name="color_mode_entries">
+        <item>Auto (match status bar)</item>
+        <item>Custom</item>
+    </string-array>
+    <string-array name="color_mode_values">
+        <item>auto</item>
+        <item>custom</item>
+    </string-array>
+</resources>

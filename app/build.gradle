@@ -1,0 +1,78 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Release signing config is read from keystore.properties (gitignored). Absent on CI/clean
+// checkouts → release falls back to unsigned and debug still works.
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
+android {
+    namespace 'com.nogrep.netspeed'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.nogrep.netspeed'
+        minSdk 31          // Android 12 — BatteryMeterView lives in com.android.systemui.battery since API 31
+        targetSdk 36       // Android 16
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // The Xposed API is provided by the framework at runtime; never bundle it.
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/*.kotlin_module']
+        }
+    }
+}
+
+dependencies {
+    // Classic Xposed API — IXposedHookLoadPackage, XposedHelpers, XSharedPreferences, XposedBridge.
+    // compileOnly => provided by LSPosed at runtime, not packaged into our APK.
+    compileOnly 'de.robv.android.xposed:api:82'
+
+    // Settings UI (runs in our own app process, so AndroidX is fine here).
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.preference:preference:1.2.1'
+
+    // Align legacy kotlin-stdlib-jdk7/jdk8 (pulled in transitively at 1.6.21) with the merged
+    // kotlin-stdlib 1.8.22 to avoid duplicate-class errors. Since Kotlin 1.8 the jdk7/jdk8
+    // artifacts are empty stubs, so forcing them up is safe.
+    constraints {
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+    }
+}

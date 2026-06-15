@@ -1,0 +1,22 @@
+# Android / Gradle
+*.iml
+.gradle/
+/build/
+/app/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# IDE / tooling
+/.idea/
+*.ipr
+*.iws
+.DS_Store
+/.claude/
+
+# Signing — NEVER commit these
+/keystore.properties
+/release.jks
+*.jks
+*.keystore
