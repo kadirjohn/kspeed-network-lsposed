@@ -44,7 +44,7 @@
     <string name="pref_show_lockscreen_title">Show on lock screen</string>
     <string name="pref_show_lockscreen_summary">Also place the indicator on the lock screen status bar</string>
 
-    <string name="hint_restart">Changes apply within one refresh interval. If the indicator does not appear, restart SystemUI (or reboot) after enabling the module in LSPosed and selecting the SystemUI scope.</string>
+    <string name="hint_restart">Changes apply within one refresh interval. If the indicator does not appear, restart SystemUI.</string>
 
     <string name="cat_about">About</string>
     <string name="pref_check_update_title">Check for updates</string>
