@@ -1,10 +1,11 @@
-# KSpeed Network / Duo Status Bar: inceleme ve ajan devir notu
+# KSpeed Network: inceleme ve ajan devir notu
 
 Tarih: 3 Kasım 2026, Europe/Istanbul.
 
-Bu belge, ekran görüntülerini göremeyen sonraki ajan için hazırlanmıştır. NetSpeed tarafındaki
-küçük düzeltmeler uygulanmıştır. Duo kaynakları incelenmiş, fakat Duo projesinde dosya değiştirilmemiştir.
-Tam Monet arayüzü bu değişikliğin parçası değildir; uygulama planı aşağıdadır.
+Bu belge, ekran görüntülerini göremeyen sonraki ajan için hazırlanmıştır. **Çalışma kapsamı yalnızca
+KSpeed Network deposudur.** NetSpeed yerleşim düzeltmeleri uygulanmıştır. Duo hakkındaki görsel
+açıklamalar ve koordinatlar, KSpeed'in başka bir modülle birlikte çalışmasının uyumluluk kanıtıdır.
+Kalan işler KSpeed ayarlar ekranı, Monet tasarımı, launcher ikonu ve bunların kontrolleridir.
 
 ## Sonraki ajanın kalan işleri: kısa liste
 
@@ -15,9 +16,7 @@ Tam Monet arayüzü bu değişikliğin parçası değildir; uygulama planı aşa
    davranışını koruyarak modernleştir; minimum Android 12'yi koru.
 3. **Native adaptive + monochrome launcher ikonu:** beyaz dış plaka ve iç içe kare görünümünü kaldır;
    normal ve temalı Neoteric Launcher görünümlerini doğrula.
-4. **Duo + stok pil sorunu:** ölçülen Compose pil ID'sini doğru tanı; iki pilin birlikte gösterilmesi
-   desteklenecekse negatif margin'in komşu pili örtmesini engelle. Duo deposunun kendi kurallarını uygula.
-5. **Kontrol ve teslim:** değişen yüzeyleri cihazda test et; her anlamlı değişikliği, kontrolleri ve
+4. **Kontrol ve teslim:** KSpeed'in değişen yüzeylerini cihazda test et; her anlamlı değişikliği, kontrolleri ve
    kalan eksikleri commit açıklamasında ve son kullanıcı mesajında açıkça bildir; uzak depoya gönder.
 
 Fotoğraf erişimi olmayan ajan, aşağıdaki görsel açıklamalarını ve seçilmiş koordinat kanıtlarını
@@ -40,9 +39,6 @@ bağlı cihazdaki tanı ölçümleriyle doğrulamalı.
   Sonraki ekran görüntüsü ve ADB ölçüsü, **KSpeed → sistem simgeleri → Duo** sırasını ve çakışmanın
   kalktığını doğruladı. Bu, aşağıdaki ölçülen cihaz ve ayarlar için geçerlidir.
 - 5 Robolectric testi geçti; debug APK derlendi; `lintDebug` hata vermedi (6 uyarı var).
-- Ayrı **sistem pili + Duo** çakışması cihazda tekrar üretildi: 16 px üst üste binme.
-  Bu sorun Duo tarafında kalıyor. Yalnız NetSpeed'i değiştirmek iki yabancı view arasındaki yerleşimi
-  düzeltmez.
 
 ## Kullanıcının istediği davranış
 
@@ -97,7 +93,6 @@ Yalnızca StatusBar'a ilişkin seçilmiş koordinatlar saklandı; tam uygulama/p
 konmadı. Kanıt dosyaları:
 
 - [Başlangıç yerleşimi](evidence/statusbar-before.jsonl)
-- [Stok pil + Duo açıkken](evidence/stock-battery-and-duo.jsonl)
 - [KSpeed etkinleştirildikten sonra](evidence/statusbar-after.jsonl)
 
 `visibility=0` VISIBLE; `8` GONE. GONE view'lerde eski left/right ölçüleri kalabilir; bunları görünür
@@ -106,19 +101,6 @@ konmadı. Kanıt dosyaları:
 
 Stok pil testi için yalnız blacklist'ten `battery` geçici çıkarıldı. Sonra başlangıç değerinin tamamı
 geri yazıldı ve geri döndüğü okundu. Cihazın kalıcı stok simge tercihi değiştirilmedi.
-
-### Stok pil ve Duo: doğrudan ölçülen çakışma
-
-Aynı `system_icons` parent'ına göre:
-
-```text
-StatusIconContainer: left=8,   right=167, width=159
-Compose pil:        left=167, right=250, width=83,  VISIBLE
-Duo:                left=234, right=304, width=70,  VISIBLE, marginLeft=-16
-```
-
-Pil `[167,250)` ve Duo `[234,304)` aralıkları **16 px** kesişiyor. KSpeed/NetSpeed bu testte GONE;
-dolayısıyla bu ikinci sorunun ağ hızı örneklemesiyle ilgisi yok.
 
 ### Yeni KSpeed: cihazda doğrulanan sıra
 
@@ -190,67 +172,10 @@ kullanıldı. Eski uygulama/verisi yerinde durur; iki modül aynı anda açık b
 uygulamalar arası ayar göçü ürün koduna eklenmedi. Bu cihazdaki mevcut 16 tercih ADB ile yeni debug
 paketin `netspeed_prefs` dosyasına kopyalandı; yeni ConfigProvider yanıtı eski değerlerle doğrulandı.
 
-## Duo tarafında kalan iş: kesin nedenler ve çözüm seçenekleri
-
-Repo: `/Users/kc4ca/projects/duoStatusBar`.
-Önce o reponun `AGENTS.md` dosyasını oku. Rive'i yeniden boyutlandırmanın daha önce SystemUI'yi
-çökerttiği belgelenmiş; bu sorunu view'leri her karede yeniden boyutlandırarak çözmeye çalışma.
-
-### A. Stok Compose pilini tanıyamama
-
-`hook/StockIconHider.kt:isReplaced` resource ID için tam `battery` eşleşmesi veya wifi/mobile adları
-arıyor. Ardından sınıf adında battery/wifi/mobile arıyor. Cihazdaki gerçek pil:
-
-```text
-androidx.compose.ui.platform.ComposeView, id=battery_composable_view
-```
-
-ID tam `battery` değil; sınıf adı da pil içermiyor. Bu yüzden `hideOtherIcons=false` yolundaki
-`hideReplaced` pilin yerine geçtiğini anlayamıyor. Kullanıcı sistem pilini açınca hem stok hem Duo
-VISIBLE kalıyor. Bu, cihazdaki görünürlük ve kaynak koduyla doğrulanmış bir eşleşme eksikliği.
-
-En küçük düzeltme: **ölçülen tam** `battery_composable_view` ID'sini `isReplaced` pil eşleşmelerine
-katmak; ayrı bir test eklemek. Her `ComposeView`'i gizleme: saat, privacy chip ve başka sistem içeriği
-de Compose olabilir. Her adı battery içeren container'ı gizleme: container içinde başka simgeler var.
-
-`ContainerFinder.kt:findBatteryByRole/findBattery` de eski pil ID/sınıf yollarını kullanıyor;
-yeni pil rolünü burada desteklemek gerekiyorsa tam ID ile yap ve bu rolün tüm çağrı noktalarını incele.
-`SlotGeometry.measuredWidth` ve kaydedilen taban boyutu ayrı konudur: 59 px fallback yerine 83 px
-pil genişliği seçmek, mevcut 120% ayarında halkayı 70 px'ten ~99 px'e büyütebilir. Gizleme düzeltmesini
-istemeden boyut/değer göçüne dönüştürme; eski görsel boyutu koru ve değişen ölçüyü belgele.
-
-### B. İki pil de bilerek gösterilecekse güvenli alan
-
-Stok pili doğru gizlemek tek başına yeterli ürün davranışı olmayabilir: kullanıcı iki pili de görmek
-isteyebilir. Böyle bir birlikte gösterim desteklenecekse negatif ring margin'inin önceki görünür
-pilin çizimine girmesine izin verilmemeli. Mevcut `edgeInsetPx` hesabı:
-
-```text
-reserved = floor(side * edgePadding / 100)
-inset = reserved - side
-side=70, edgePadding=78 => reserved=54, inset=-16
-```
-
-İlgili yerler:
-
-- `hook/SlotGeometry.kt:edgeInsetPx`
-- `hook/DuoIconHost.kt:layoutParamsFor`, `ringInset`, `assignBox`, `place`
-- Overlay yolu: `anchorOnBattery`; split/locked yolda spacer ve `iconSlotInset` da var.
-
-Basit geçici ayar: **Edge spacing=100%, position=0 dp**. Bu hesapta negatif başlangıç margin'i
-kalkar. Yeni KSpeed çakışmasının çözümü için bu ayarı zorunlu kılmadık. İki pilin yan yana durması için
-kalıcı çözüm, önceki komşunun gerçek çizim alanına göre ring'e yeterli flow alanı ayırmak veya açık bir
-birlikte gösterim kipi sunmaktır. Mevcut kullanıcıların varsayılan geometrisini keyfi olarak değiştirme.
-
-Duo tarafında uygulama için testler: klasik pil / ölçülen Compose pil / pil olmayan ComposeView;
-show-stock kapalı ve açık; ring %100 ve %120; edge 0/78/100; görünür sistem simgesi yok/DND/data saver;
-split/locked/overlay/shade/keyguard; RTL. İlgili yüzeylerin önce/sonra tanı dökümlerini karşılaştır.
-
 ## Minimum Android ve Monet planı
 
 KSpeed `app/build.gradle`: **minSdk 31 = Android 12**; compileSdk/targetSdk 36 = Android 16.
 Target ve minimum farklıdır; target 36 uygulamanın sadece Android 16'ya kurulacağı anlamına gelmez.
-Duo'nun kendi minimumu ise `app/build.gradle.kts` içinde **minSdk 33 = Android 13**.
 Sadece Gradle minimumu değiştirerek eski Android/başka ROM SystemUI uyumu kazanılmaz.
 
 **Monet mümkün; minimumu artırmak gerekmiyor.** Android'in resmi Dynamic Color desteği Android 12'de
@@ -393,8 +318,8 @@ exported settings provider ve backup ayarı. Tüm ROM'larda veya API31'de canlı
 
 Kullanıcının cihazda etkinleştirmesi ve son görüntüsüyle ana durum çubuğu doğrulandı. Shade/lockscreen
 seçenekleri cihazda kapalıydı; bu iki yüzey ve başka ROM'lar ayrıca cihaz kontrolü ister.
-Yeni APK `app/build/outputs/apk/debug/app-debug.apk`. Yeni release yayınlanmadı. Ayrı Duo değişiklikleri,
-ayarlar ekranının sistem çubuğu taşması, tam Monet ekranı ve adaptive/monochrome ikon yenilemesi
+Yeni APK `app/build/outputs/apk/debug/app-debug.apk`. Yeni release yayınlanmadı.
+Ayarlar ekranının sistem çubuğu taşması, tam Monet ekranı ve adaptive/monochrome ikon yenilemesi
 sonraki ajana bırakılan işlerdir.
 
 ## Commit ve uzak depo teslim sözleşmesi
@@ -402,7 +327,7 @@ sonraki ajana bırakılan işlerdir.
 Kullanıcı yapılanların yalnız yerelde kalmamasını ve kendi kimliğiyle kaydedilmesini istiyor.
 Bu çalışma için mevcut Git kimliği `kadirjohn <kc4ca@protonmail.com>`; uzak depo
 `https://github.com/kadirjohn/kspeed-network-lsposed.git`, teslim dalı `main`.
-Bu repo dışındaki Duo değişiklikleri kendi deposunda, kendi erişim/çalışma kurallarıyla ele alınmalı.
+Teslim kapsamı bu repodaki KSpeed değişiklikleridir.
 
 Sonraki ajan her commit'te anlamlı değişikliklerin tamamını açıklamalı: hangi hatanın giderildiği,
 son davranış, değişen ayar/ikon/paket veya provider sözleşmesi, yapılan cihaz/otomatik kontroller ve
@@ -410,8 +335,8 @@ doğrulanmamış noktalar. Yalnız `UI fixes` gibi genel bir açıklama kullanma
 commit kimliği, dal, tıklanabilir GitHub commit bağlantısı ve push'ın başarılı olup olmadığı verilmeli.
 Yapılmayan iş yapılmış gibi yazılmamalı; test edilmemiş yüzeyler açıkça belirtilmeli.
 
-Bu oturumun commit kapsamı: NetSpeed'in sistem simgelerinden önce yerleşmesi; negatif margin/translation
+İlk uygulama commit'inin (`e769fde`) kapsamı: NetSpeed'in sistem simgelerinden önce yerleşmesi; negatif margin/translation
 koruması ve RTL; yakın ok/metin satırları; paket/provider/Xposed/ProGuard/isim/kaynak-güncelleme bağlantısı
 rebrand'i; geçici K/ok vector ikonu; sürüm 1.0.3-dev; 5 yerleşim testi ve test yapılandırması; README,
 görsellerin metin karşılıkları, cihaz koordinat kanıtları ve bu devir belgesi. Ayarlar ekranı taşması,
-tam Monet tasarımı, nihai adaptive/monochrome ikon ve Duo kodu bu commit'te düzeltilmiş sayılmaz.
+tam Monet tasarımı ve nihai adaptive/monochrome ikon bu commit'te düzeltilmiş sayılmaz.

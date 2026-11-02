@@ -64,9 +64,8 @@ KSpeed Network is placed before the system-icon cluster. It also measures follow
 reserves the additional gap needed if a negative margin or translation reaches back over the speed
 indicator, including when no system icons are visible. It changes only its own margin.
 
-The separate **stock battery + Duo** collision belongs to Duo's placement/hiding logic. This fork does
-not modify Duo. Setting Duo's edge spacing to 100% and position to 0 dp removes the measured negative
-margin; the report details the Android 17 Compose battery detection issue and a proper Duo-side fix.
+The compatibility adjustment is implemented entirely inside KSpeed Network. Remaining development
+focuses on KSpeed's settings layout, Material 3 / Monet design, launcher icon and validation.
 
 ## Build and check
 
@@ -109,9 +108,10 @@ Keep the signing key safe; an APK signed by another key cannot update an existin
 
 ## Investigation and next work
 
-The Turkish [Duo conflict investigation and agent handoff](docs/DUO_CONFLICT_HANDOFF_TR.md) describes
-every supplied screenshot, measured device coordinates, implemented changes, remaining Duo work,
-and a Material 3 / Monet migration plan that preserves all settings.
+The Turkish [KSpeed Network investigation and agent handoff](docs/KSPEED_HANDOFF_TR.md) describes
+every supplied screenshot, measured compatibility coordinates and implemented changes. Remaining
+work is limited to KSpeed: settings system-bar insets, Material 3 / Monet, adaptive/monochrome launcher
+icons and validation, while preserving all settings.
 
 The settings screen still uses AppCompat preferences. A full Material 3 redesign and a native
 adaptive/monochrome launcher icon without the current light outer plate are specified in the handoff
