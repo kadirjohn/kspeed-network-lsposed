@@ -31,12 +31,14 @@ import java.util.Locale;
  */
 public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
+    private StatusPreviewController previewController;
+    private SharedPreferences prefs;
+    private final SharedPreferences.OnSharedPreferenceChangeListener prefListener =
+            (sharedPreferences, key) -> updatePreview();
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Monet: wallpaper-based dynamic color where supported (all installable devices —
-        // minSdk 31 / A12); the M3 baseline palette is the fallback. Idempotent; applying it
-        // in the app's single activity is equivalent to applying it once per app.
         DynamicColors.applyToActivitiesIfAvailable(getApplication());
         setContentView(R.layout.activity_settings);
 
@@ -45,11 +47,41 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
         applyInsets();
 
+        prefs = getSharedPreferences(Constants.PREFS, Context.MODE_PRIVATE);
+        View previewCard = findViewById(R.id.settings_preview_card);
+        if (previewCard != null) {
+            previewController = new StatusPreviewController(previewCard);
+            updatePreview();
+        }
+
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.settings_container, new SettingsFragment())
                     .commit();
+        }
+    }
+
+    public void updatePreview() {
+        if (previewController != null && prefs != null) {
+            previewController.update(prefs);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (prefs != null) {
+            prefs.registerOnSharedPreferenceChangeListener(prefListener);
+            updatePreview();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (prefs != null) {
+            prefs.unregisterOnSharedPreferenceChangeListener(prefListener);
         }
     }
 
@@ -188,6 +220,9 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
                 if (sp2 != null) {
                     sp2.edit().putString(key, v).apply();
                     notifyHook();
+                    if (getActivity() instanceof SettingsActivity) {
+                        ((SettingsActivity) getActivity()).updatePreview();
+                    }
                 }
                 pref.setSummary(v);
             });
@@ -218,6 +253,9 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
             notifyHook();
+            if (getActivity() instanceof SettingsActivity) {
+                ((SettingsActivity) getActivity()).updatePreview();
+            }
         }
 
         /** Tell the SystemUI hook (which observes the ConfigProvider URI) to re-read settings. */

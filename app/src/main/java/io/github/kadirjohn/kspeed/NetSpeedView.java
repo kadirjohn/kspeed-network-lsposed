@@ -426,40 +426,7 @@ public class NetSpeedView extends LinearLayout {
     // ---- formatting ----
 
     private static String format(double bytesPerSec, String unitMode, boolean showUnit) {
-        if (unitMode == null) {
-            unitMode = "auto_bytes";
-        }
-        if (unitMode.startsWith("auto")) {
-            boolean bits = "auto_bits".equals(unitMode);
-            double value = bits ? bytesPerSec * 8.0 : bytesPerSec;
-            double base = bits ? 1000.0 : 1024.0;
-            String[] units = bits
-                    ? new String[]{"bit/s", "Kbit/s", "Mbit/s", "Gbit/s"}
-                    : new String[]{"B/s", "KB/s", "MB/s", "GB/s"};
-            int i = 0;
-            while (value >= base && i < units.length - 1) {
-                value /= base;
-                i++;
-            }
-            String num = (i == 0 || value >= 10)
-                    ? String.format(Locale.US, "%.0f", value)
-                    : String.format(Locale.US, "%.1f", value);
-            return num + " " + units[i];
-        }
-
-        double value;
-        String label;
-        switch (unitMode) {
-            case "mbs":   value = bytesPerSec / 1048576.0;       label = "MB/s";   break;
-            case "kbits": value = bytesPerSec * 8.0 / 1000.0;    label = "Kbit/s"; break;
-            case "mbits": value = bytesPerSec * 8.0 / 1000000.0; label = "Mbit/s"; break;
-            case "kbs":
-            default:      value = bytesPerSec / 1024.0;          label = "KB/s";   break;
-        }
-        String num = value >= 10
-                ? String.format(Locale.US, "%.0f", value)
-                : String.format(Locale.US, "%.1f", value);
-        return showUnit ? num + " " + label : num;
+        return SpeedFormatter.format(bytesPerSec, unitMode, showUnit);
     }
 
     // ---- config accessors ----
@@ -500,60 +467,5 @@ public class NetSpeedView extends LinearLayout {
 
     private static int dp(Context c, int d) {
         return Math.round(d * c.getResources().getDisplayMetrics().density);
-    }
-
-    /** A small filled triangle drawn in the text color: pointing down (download) or up (upload). */
-    private static final class ArrowDrawable extends Drawable {
-        private final boolean down;
-        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-        ArrowDrawable(boolean down) {
-            this.down = down;
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Color.WHITE);
-        }
-
-        void setTint(int color, int alpha) {
-            paint.setColor(color);
-            paint.setAlpha(alpha);
-            invalidateSelf();
-        }
-
-        @Override
-        public void draw(@androidx.annotation.NonNull Canvas canvas) {
-            Rect b = getBounds();
-            if (b.width() <= 0 || b.height() <= 0) {
-                return;
-            }
-            float padX = b.width() * 0.16f;
-            float padY = b.height() * 0.22f;
-            Path p = new Path();
-            if (down) {
-                p.moveTo(b.left + padX, b.top + padY);
-                p.lineTo(b.right - padX, b.top + padY);
-                p.lineTo(b.exactCenterX(), b.bottom - padY);
-            } else {
-                p.moveTo(b.left + padX, b.bottom - padY);
-                p.lineTo(b.right - padX, b.bottom - padY);
-                p.lineTo(b.exactCenterX(), b.top + padY);
-            }
-            p.close();
-            canvas.drawPath(p, paint);
-        }
-
-        @Override
-        public void setAlpha(int alpha) {
-            paint.setAlpha(alpha);
-        }
-
-        @Override
-        public void setColorFilter(@androidx.annotation.Nullable ColorFilter colorFilter) {
-            paint.setColorFilter(colorFilter);
-        }
-
-        @Override
-        public int getOpacity() {
-            return PixelFormat.TRANSLUCENT;
-        }
     }
 }

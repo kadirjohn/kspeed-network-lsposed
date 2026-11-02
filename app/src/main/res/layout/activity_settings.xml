@@ -22,6 +22,10 @@
         android:background="?attr/colorSurface"
         app:title="@string/app_name" />
 
+    <include
+        android:id="@+id/settings_preview_card"
+        layout="@layout/view_preview_card" />
+
     <FrameLayout
         android:id="@+id/settings_container"
         android:layout_width="match_parent"

@@ -4,6 +4,11 @@
     <string name="xposed_desc">Live network speed before the system status icons. Scope: SystemUI.</string>
 
     <!-- Category titles -->
+    <string name="preview_card_title">STATUS BAR PREVIEW</string>
+    <string name="preview_live_badge">LIVE</string>
+    <string name="preview_subtitle">Simulated traffic (↑ 1.2 MB/s, ↓ 340 KB/s) reflecting current display settings</string>
+    <string name="preview_disabled_hint">Indicator is turned off</string>
+
     <string name="cat_general">General</string>
     <string name="cat_display">Display</string>
     <string name="cat_appearance">Appearance</string>
