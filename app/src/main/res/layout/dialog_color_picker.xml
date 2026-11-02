@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Live Preview & Hex Input -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <View
+            android:id="@+id/dialog_color_preview"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/bg_color_circle" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/dialog_hex_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialog_hex_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapCharacters|textNoSuggestions"
+                android:maxLength="7"
+                android:fontFamily="monospace" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dialog_preset_colors"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Preset Swatches Row 1 -->
+    <LinearLayout
+        android:id="@+id/swatches_row_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Preset Swatches Row 2 -->
+    <LinearLayout
+        android:id="@+id/swatches_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center" />
+
+</LinearLayout>

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
+        android:key="cat_general"
         app:title="@string/cat_general"
         app:icon="@drawable/ic_cat_general"
         app:layout="@layout/preference_category_m3">
@@ -14,47 +15,36 @@
             app:summary="@string/pref_enabled_summary"
             app:icon="@drawable/ic_pref_visibility" />
 
-        <io.github.kadirjohn.kspeed.IllustratedListPreference
+        <io.github.kadirjohn.kspeed.ChipGroupPreference
             app:key="mode"
             app:defaultValue="both"
             app:title="@string/pref_mode_title"
-            app:entries="@array/mode_entries"
-            app:entryValues="@array/mode_values"
-            app:useSimpleSummaryProvider="true"
             app:icon="@drawable/ic_pref_view_agenda" />
 
-        <ListPreference
+        <io.github.kadirjohn.kspeed.ChipGroupPreference
             app:key="interval_ms"
             app:defaultValue="1000"
             app:title="@string/pref_interval_title"
-            app:entries="@array/interval_entries"
-            app:entryValues="@array/interval_values"
-            app:useSimpleSummaryProvider="true"
             app:icon="@drawable/ic_pref_timer" />
 
-        <io.github.kadirjohn.kspeed.IllustratedListPreference
+        <io.github.kadirjohn.kspeed.ChipGroupPreference
             app:key="source"
             app:defaultValue="total"
             app:title="@string/pref_source_title"
-            app:entries="@array/source_entries"
-            app:entryValues="@array/source_values"
-            app:useSimpleSummaryProvider="true"
             app:icon="@drawable/ic_pref_swap_vert" />
 
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:key="cat_display"
         app:title="@string/cat_display"
         app:icon="@drawable/ic_cat_display"
         app:layout="@layout/preference_category_m3">
 
-        <ListPreference
+        <io.github.kadirjohn.kspeed.ChipGroupPreference
             app:key="unit"
             app:defaultValue="auto_bytes"
             app:title="@string/pref_unit_title"
-            app:entries="@array/unit_entries"
-            app:entryValues="@array/unit_values"
-            app:useSimpleSummaryProvider="true"
             app:icon="@drawable/ic_pref_straighten" />
 
         <io.github.kadirjohn.kspeed.MaterialSwitchPreference
@@ -91,12 +81,12 @@
             app:min="0"
             android:max="100"
             app:title="@string/pref_idle_threshold_title"
-            app:dependency="hide_idle"
             app:icon="@drawable/ic_pref_speed" />
 
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:key="cat_appearance"
         app:title="@string/cat_appearance"
         app:icon="@drawable/ic_cat_appearance"
         app:layout="@layout/preference_category_m3">
@@ -109,27 +99,23 @@
             app:title="@string/pref_text_size_title"
             app:icon="@drawable/ic_pref_format_size" />
 
-        <ListPreference
+        <io.github.kadirjohn.kspeed.ColorModeSwitchPreference
             app:key="color_mode"
             app:defaultValue="auto"
-            app:title="@string/pref_color_mode_title"
-            app:entries="@array/color_mode_entries"
-            app:entryValues="@array/color_mode_values"
-            app:useSimpleSummaryProvider="true"
+            app:title="@string/pref_color_mode_auto_title"
+            app:summary="@string/pref_color_mode_auto_summary"
             app:icon="@drawable/ic_pref_palette" />
 
-        <EditTextPreference
+        <io.github.kadirjohn.kspeed.ColorPickerPreference
             app:key="custom_color"
             app:defaultValue="#FFFFFF"
             app:title="@string/pref_custom_color_title"
-            app:summary="@string/pref_custom_color_summary"
             app:icon="@drawable/ic_pref_arrow_downward" />
 
-        <EditTextPreference
+        <io.github.kadirjohn.kspeed.ColorPickerPreference
             app:key="custom_color_ul"
             app:defaultValue="#FFFFFF"
             app:title="@string/pref_custom_color_ul_title"
-            app:summary="@string/pref_custom_color_ul_summary"
             app:icon="@drawable/ic_pref_arrow_upward" />
 
         <io.github.kadirjohn.kspeed.MaterialSwitchPreference
@@ -142,6 +128,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:key="cat_surfaces"
         app:title="@string/cat_surfaces"
         app:icon="@drawable/ic_cat_surfaces"
         app:layout="@layout/preference_category_m3">
@@ -162,15 +149,9 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        app:title="@string/cat_about"
-        app:icon="@drawable/ic_cat_about"
-        app:layout="@layout/preference_category_m3">
-
-        <io.github.kadirjohn.kspeed.AboutCardPreference
-            app:key="about_card"
-            app:persistent="false" />
-
-    </PreferenceCategory>
+    <!-- About section: clean card without category outline box -->
+    <io.github.kadirjohn.kspeed.AboutCardPreference
+        app:key="about_card"
+        app:persistent="false" />
 
 </PreferenceScreen>

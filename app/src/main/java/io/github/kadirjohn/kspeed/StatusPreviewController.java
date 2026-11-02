@@ -30,8 +30,6 @@ public final class StatusPreviewController {
     private final LinearLayout indicatorContainer;
     private final TextView line1;
     private final TextView line2;
-    private final TextView subtitle;
-    private final TextView badge;
 
     private final ArrowDrawable downArrow = new ArrowDrawable(true);
     private final ArrowDrawable upArrow = new ArrowDrawable(false);
@@ -42,8 +40,6 @@ public final class StatusPreviewController {
         this.indicatorContainer = cardRoot.findViewById(R.id.preview_indicator_container);
         this.line1 = cardRoot.findViewById(R.id.preview_line1);
         this.line2 = cardRoot.findViewById(R.id.preview_line2);
-        this.subtitle = cardRoot.findViewById(R.id.preview_card_subtitle);
-        this.badge = cardRoot.findViewById(R.id.preview_card_badge);
 
         if (mockClock != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
@@ -87,22 +83,10 @@ public final class StatusPreviewController {
 
         if (!enabled) {
             indicatorContainer.setVisibility(View.GONE);
-            if (subtitle != null) {
-                subtitle.setText(R.string.preview_disabled_hint);
-            }
-            if (badge != null) {
-                badge.setText(ctx.getString(R.string.preview_disabled_hint));
-            }
             return;
         }
 
         indicatorContainer.setVisibility(View.VISIBLE);
-        if (subtitle != null) {
-            subtitle.setText(R.string.preview_subtitle);
-        }
-        if (badge != null) {
-            badge.setText(R.string.preview_live_badge);
-        }
 
         line1.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp);
         line2.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp);

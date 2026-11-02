@@ -13,17 +13,16 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
-import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceGroupAdapter;
-import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ItemDecoration that groups preference items into rounded Material 3 surfaceContainer cards (24dp radius),
- * removing thin divider lines and adding clean whitespace between sections.
+ * ItemDecoration that groups preference items into rounded Material 3 surfaceContainer cards,
+ * providing generous internal margins so icons never touch the card outline,
+ * and excluding the About section from category outlines.
  */
 public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
 
@@ -36,13 +35,13 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
     public static class GroupRange {
         public int startPos;
         public int endPos;
-        public boolean isCustomCard;
     }
 
     public CategoryCardItemDecoration(Context context) {
-        cornerRadius = dpToPx(context, 24);
-        marginHorizontal = (int) dpToPx(context, 16);
-        marginBetweenCards = (int) dpToPx(context, 16);
+        cornerRadius = dpToPx(context, 20);
+        // Enlarged outline width (closer to screen edge with 10dp margin)
+        marginHorizontal = (int) dpToPx(context, 10);
+        marginBetweenCards = (int) dpToPx(context, 14);
 
         int surfaceContainer = resolveThemeColor(context,
                 com.google.android.material.R.attr.colorSurfaceContainer, 0xFFF2E6E6);
@@ -54,15 +53,6 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
 
         strokePaint.setStyle(Paint.Style.STROKE);
         strokePaint.setStrokeWidth(dpToPx(context, 1));
-        strokePaint.setColor(outlineVariant);
-    }
-
-    public void updateThemeColors(Context context) {
-        int surfaceContainer = resolveThemeColor(context,
-                com.google.android.material.R.attr.colorSurfaceContainer, 0xFFF2E6E6);
-        int outlineVariant = resolveThemeColor(context,
-                com.google.android.material.R.attr.colorOutlineVariant, 0x1F000000);
-        cardPaint.setColor(surfaceContainer);
         strokePaint.setColor(outlineVariant);
     }
 
@@ -84,12 +74,11 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
         Preference pref = pga.getItem(pos);
         if (pref instanceof PreferenceCategory) {
             outRect.top = marginBetweenCards;
-            outRect.bottom = (int) dpToPx(view.getContext(), 4);
+            outRect.bottom = (int) dpToPx(view.getContext(), 2);
         } else if (pref instanceof AboutCardPreference) {
-            outRect.top = (int) dpToPx(view.getContext(), 4);
-            outRect.bottom = marginBetweenCards;
+            outRect.top = marginBetweenCards;
+            outRect.bottom = (int) dpToPx(view.getContext(), 24);
         } else {
-            // Check if this is the last item in its category
             boolean isLast = true;
             if (pos + 1 < pga.getItemCount()) {
                 Preference next = pga.getItem(pos + 1);
@@ -112,11 +101,6 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
         List<GroupRange> groups = findGroups(pga);
 
         for (GroupRange g : groups) {
-            if (g.isCustomCard) {
-                // AboutCardPreference already renders its own card
-                continue;
-            }
-
             View firstChild = null;
             View lastChild = null;
 
@@ -153,6 +137,16 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
 
         for (int i = 0; i < count; i++) {
             Preference p = pga.getItem(i);
+            // Completely exclude About section from category outline cards
+            if (p instanceof AboutCardPreference || "cat_about".equals(p.getKey())) {
+                if (current != null) {
+                    current.endPos = i - 1;
+                    groups.add(current);
+                    current = null;
+                }
+                continue;
+            }
+
             if (p instanceof PreferenceCategory) {
                 if (current != null) {
                     current.endPos = i - 1;
@@ -160,18 +154,6 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
                 }
                 current = new GroupRange();
                 current.startPos = i;
-                current.isCustomCard = false;
-            } else if (p instanceof AboutCardPreference) {
-                if (current != null) {
-                    current.endPos = i - 1;
-                    groups.add(current);
-                }
-                GroupRange aboutGroup = new GroupRange();
-                aboutGroup.startPos = i;
-                aboutGroup.endPos = i;
-                aboutGroup.isCustomCard = true;
-                groups.add(aboutGroup);
-                current = null;
             }
         }
         if (current != null) {

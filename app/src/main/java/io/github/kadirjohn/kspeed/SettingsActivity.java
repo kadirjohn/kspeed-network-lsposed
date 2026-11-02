@@ -1,36 +1,45 @@
 package io.github.kadirjohn.kspeed;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import org.json.JSONObject;
+
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Settings UI. Material 3 + dynamic color (Monet) when the device supports it, baseline M3
- * palette otherwise. The window is edge-to-edge (forced by the OS on this targetSdk); real
- * WindowInsets are applied here once as padding — top (status bar + cutout) to the app bar,
- * bottom (navigation bar / gesture area) to the list container — so no preference text can
- * draw under the system clock/icons, and bottom rows stay reachable above the nav bar.
+ * palette otherwise. Edge-to-edge window insets are handled smoothly.
  */
 public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
@@ -121,6 +130,166 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_settings, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        if (searchItem != null) {
+            SearchView searchView = (SearchView) searchItem.getActionView();
+            if (searchView != null) {
+                searchView.setQueryHint(getString(R.string.menu_search));
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        filterSettings(query);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        filterSettings(newText);
+                        return true;
+                    }
+                });
+            }
+            searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+                @Override
+                public boolean onMenuItemActionExpand(@NonNull MenuItem item) {
+                    return true;
+                }
+
+                @Override
+                public boolean onMenuItemActionCollapse(@NonNull MenuItem item) {
+                    filterSettings("");
+                    return true;
+                }
+            });
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_reset) {
+            showResetDialog();
+            return true;
+        } else if (id == R.id.action_export) {
+            exportSettingsJson();
+            return true;
+        } else if (id == R.id.action_import) {
+            importSettingsJson();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void filterSettings(String query) {
+        androidx.fragment.app.Fragment f = getSupportFragmentManager().findFragmentById(R.id.settings_container);
+        if (f instanceof SettingsFragment) {
+            ((SettingsFragment) f).filterPreferences(query);
+        }
+    }
+
+    private void showResetDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.reset_confirm_title)
+                .setMessage(R.string.reset_confirm_msg)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    if (prefs != null) {
+                        prefs.edit().clear().apply();
+                    }
+                    PreferenceManager.setDefaultValues(this, Constants.PREFS, Context.MODE_PRIVATE, R.xml.prefs, true);
+                    notifyHook();
+                    recreate();
+                    Toast.makeText(this, R.string.reset_done, Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void exportSettingsJson() {
+        try {
+            Map<String, ?> all = prefs.getAll();
+            JSONObject json = new JSONObject();
+            for (Map.Entry<String, ?> entry : all.entrySet()) {
+                json.put(entry.getKey(), entry.getValue());
+            }
+            String formatted = json.toString(2);
+
+            final TextView tv = new TextView(this);
+            tv.setText(formatted);
+            tv.setTextIsSelectable(true);
+            tv.setTypeface(android.graphics.Typeface.MONOSPACE);
+            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+            tv.setPadding(pad, pad, pad, pad);
+
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.export_title)
+                    .setView(tv)
+                    .setPositiveButton(R.string.copy_json, (dialog, which) -> {
+                        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        if (cm != null) {
+                            cm.setPrimaryClip(ClipData.newPlainText("KSpeed Settings", formatted));
+                            Toast.makeText(this, R.string.json_copied, Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        } catch (Throwable t) {
+            Toast.makeText(this, "Export error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void importSettingsJson() {
+        final EditText input = new EditText(this);
+        input.setHint(R.string.import_hint);
+        input.setTypeface(android.graphics.Typeface.MONOSPACE);
+        int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+        input.setPadding(pad, pad, pad, pad);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.import_title)
+                .setView(input)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    String raw = input.getText().toString().trim();
+                    try {
+                        JSONObject json = new JSONObject(raw);
+                        SharedPreferences.Editor ed = prefs.edit();
+                        Iterator<String> keys = json.keys();
+                        while (keys.hasNext()) {
+                            String k = keys.next();
+                            Object val = json.get(k);
+                            if (val instanceof Boolean) {
+                                ed.putBoolean(k, (Boolean) val);
+                            } else if (val instanceof Integer) {
+                                ed.putInt(k, (Integer) val);
+                            } else if (val instanceof Long) {
+                                ed.putLong(k, (Long) val);
+                            } else if (val instanceof String) {
+                                ed.putString(k, (String) val);
+                            }
+                        }
+                        ed.apply();
+                        notifyHook();
+                        recreate();
+                        Toast.makeText(this, R.string.import_done, Toast.LENGTH_SHORT).show();
+                    } catch (Throwable t) {
+                        Toast.makeText(this, R.string.import_invalid, Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    public void notifyHook() {
+        try {
+            getContentResolver().notifyChange(ConfigProvider.URI, null);
+        } catch (Throwable ignored) {
+        }
+    }
+
     public static class SettingsFragment extends PreferenceFragmentCompat
             implements SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -150,94 +319,34 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
                 });
             }
 
-            bindColorPreference(findPreference(Constants.KEY_CUSTOM_COLOR));
-            bindColorPreference(findPreference(Constants.KEY_CUSTOM_COLOR_UL));
-
             Toast.makeText(ctx, getString(R.string.hint_restart), Toast.LENGTH_LONG).show();
         }
 
-        /** Hex color entry: prefill with the stored value, show a live color preview chip in the summary. */
-        private void bindColorPreference(final Preference pref) {
-            if (pref == null) {
-                return;
-            }
-            SharedPreferences sp = getPreferenceManager().getSharedPreferences();
-            final String key = pref.getKey();
-            String hex = sp != null ? sp.getString(key, "#FFFFFF") : "#FFFFFF";
-            pref.setSummary(hex);
-            pref.setOnPreferenceChangeListener((p, newValue) -> {
-                // Edits are fully owned by showHexDialog (below), which validates and writes
-                // the normalized value itself. Reaching here means a non-interactive write;
-                // normalize-and-write ourselves and block the framework's raw write.
-                String v = normalizeHex(newValue == null ? "" : newValue.toString());
-                if (v == null) {
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), R.string.invalid_hex, Toast.LENGTH_SHORT).show();
-                    }
-                    return false; // invalid input: keep the old value
-                }
-                SharedPreferences sp2 = getPreferenceManager().getSharedPreferences();
-                if (sp2 != null) {
-                    sp2.edit().putString(key, v).apply();
-                    notifyHook();
-                }
-                p.setSummary(v);
-                return false; // already written by us; block the framework's un-normalized write
-            });
-            // Rich entry: tap opens a dialog pre-filled with the current value.
-            pref.setOnPreferenceClickListener(p -> {
-                showHexDialog(pref, key);
-                return true;
-            });
-        }
+        @Override
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            setDivider(null);
+            setDividerHeight(0);
+            RecyclerView rv = getListView();
+            rv.setClipToPadding(false);
 
-        private String normalizeHex(String raw) {
-            if (raw == null) return null;
-            String s = raw.trim();
-            if (s.isEmpty()) return null;
-            if (!s.startsWith("#")) s = "#" + s;
-            if (s.length() == 4) { // #RGB -> #RRGGBB
-                s = "#" + s.charAt(1) + s.charAt(1) + s.charAt(2) + s.charAt(2)
-                        + s.charAt(3) + s.charAt(3);
-            }
-            try {
-                Color.parseColor(s);
-            } catch (Throwable t) {
-                return null;
-            }
-            return s.toUpperCase(Locale.US);
-        }
+            // Generous internal margin so SVGs have plenty of room from the outline
+            final int padHorizontal = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, 22, getResources().getDisplayMetrics());
 
-        private void showHexDialog(final Preference pref, final String key) {
-            Context ctx = getContext();
-            if (ctx == null) return;
-            SharedPreferences sp = getPreferenceManager().getSharedPreferences();
-            String current = sp != null ? sp.getString(key, "#FFFFFF") : "#FFFFFF";
-            final MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(ctx);
-            builder.setTitle(pref.getTitle());
-            final EditText input = new EditText(ctx);
-            input.setText(current);
-            input.setSelection(input.length());
-            input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(7)});
-            builder.setView(input);
-            builder.setPositiveButton(android.R.string.ok, (d, w) -> {
-                String v = normalizeHex(input.getText().toString());
-                if (v == null) {
-                    Toast.makeText(ctx, R.string.invalid_hex, Toast.LENGTH_SHORT).show();
-                    return;
+            rv.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
+                @Override
+                public void onChildViewAttachedToWindow(@NonNull View child) {
+                    child.setPaddingRelative(padHorizontal, child.getPaddingTop(),
+                            padHorizontal, child.getPaddingBottom());
                 }
-                SharedPreferences sp2 = getPreferenceManager().getSharedPreferences();
-                if (sp2 != null) {
-                    sp2.edit().putString(key, v).apply();
-                    notifyHook();
-                    if (getActivity() instanceof SettingsActivity) {
-                        ((SettingsActivity) getActivity()).updatePreview();
-                    }
-                }
-                pref.setSummary(v);
+
+                @Override
+                public void onChildViewDetachedFromWindow(@NonNull View child) {}
             });
-            builder.setNegativeButton(android.R.string.cancel, null);
-            builder.show();
+
+            rv.addItemDecoration(new CategoryCardItemDecoration(requireContext()));
+            updateDependencies();
         }
 
         @Override
@@ -249,16 +358,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
             }
             notifyHook();
             maybeAutoCheck();
-        }
-
-        @Override
-        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-            super.onViewCreated(view, savedInstanceState);
-            setDivider(null);
-            setDividerHeight(0);
-            RecyclerView rv = getListView();
-            rv.setClipToPadding(false);
-            rv.addItemDecoration(new CategoryCardItemDecoration(requireContext()));
+            updateDependencies();
         }
 
         @Override
@@ -279,9 +379,93 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
                 }
                 return;
             }
+            updateDependencies();
             if (getActivity() instanceof SettingsActivity) {
                 ((SettingsActivity) getActivity()).updatePreview();
             }
+        }
+
+        public void updateDependencies() {
+            SharedPreferences sp = getPreferenceManager().getSharedPreferences();
+            if (sp == null) return;
+
+            boolean enabled = sp.getBoolean(Constants.KEY_ENABLED, Constants.DEF_ENABLED);
+            boolean hideIdle = sp.getBoolean(Constants.KEY_HIDE_IDLE, Constants.DEF_HIDE_IDLE);
+            String unit = sp.getString(Constants.KEY_UNIT, Constants.DEF_UNIT);
+            String colorMode = sp.getString(Constants.KEY_COLOR_MODE, Constants.DEF_COLOR_MODE);
+
+            // 1. When enabled is false, disable all sub-settings
+            Preference modePref = findPreference(Constants.KEY_MODE);
+            Preference intervalPref = findPreference(Constants.KEY_INTERVAL);
+            Preference sourcePref = findPreference(Constants.KEY_SOURCE);
+            PreferenceCategory displayCat = findPreference("cat_display");
+            PreferenceCategory appearanceCat = findPreference("cat_appearance");
+            PreferenceCategory surfacesCat = findPreference("cat_surfaces");
+
+            if (modePref != null) modePref.setEnabled(enabled);
+            if (intervalPref != null) intervalPref.setEnabled(enabled);
+            if (sourcePref != null) sourcePref.setEnabled(enabled);
+            if (displayCat != null) displayCat.setEnabled(enabled);
+            if (appearanceCat != null) appearanceCat.setEnabled(enabled);
+            if (surfacesCat != null) surfacesCat.setEnabled(enabled);
+
+            // 2. Hide when idle: animate visibility of idle_threshold_kb
+            Preference idleThreshold = findPreference(Constants.KEY_IDLE_THRESHOLD);
+            if (idleThreshold != null) {
+                idleThreshold.setVisible(hideIdle);
+            }
+
+            // 3. Auto unit: disable show_unit
+            Preference showUnitPref = findPreference(Constants.KEY_SHOW_UNIT);
+            if (showUnitPref != null) {
+                boolean isAuto = unit != null && unit.startsWith("auto");
+                showUnitPref.setEnabled(!isAuto);
+                if (isAuto) {
+                    showUnitPref.setSummary(R.string.pref_show_unit_auto_note);
+                } else {
+                    showUnitPref.setSummary(R.string.pref_show_unit_summary);
+                }
+            }
+
+            // 4. Color mode: auto disables custom colors
+            boolean isCustomColor = "custom".equals(colorMode);
+            Preference customDl = findPreference(Constants.KEY_CUSTOM_COLOR);
+            Preference customUl = findPreference(Constants.KEY_CUSTOM_COLOR_UL);
+            if (customDl != null) customDl.setEnabled(isCustomColor);
+            if (customUl != null) customUl.setEnabled(isCustomColor);
+        }
+
+        public void filterPreferences(String query) {
+            PreferenceScreen screen = getPreferenceScreen();
+            if (screen == null) return;
+            boolean hasQuery = query != null && !query.trim().isEmpty();
+            String q = hasQuery ? query.toLowerCase(Locale.getDefault()).trim() : "";
+
+            for (int i = 0; i < screen.getPreferenceCount(); i++) {
+                Preference p = screen.getPreference(i);
+                if (p instanceof PreferenceCategory) {
+                    PreferenceCategory cat = (PreferenceCategory) p;
+                    int matchCount = 0;
+                    for (int j = 0; j < cat.getPreferenceCount(); j++) {
+                        Preference child = cat.getPreference(j);
+                        boolean match = !hasQuery || matches(child, q);
+                        child.setVisible(match);
+                        if (match) matchCount++;
+                    }
+                    cat.setVisible(!hasQuery || matchCount > 0);
+                } else {
+                    p.setVisible(!hasQuery || matches(p, q));
+                }
+            }
+        }
+
+        private static boolean matches(Preference p, String q) {
+            CharSequence title = p.getTitle();
+            if (title != null && title.toString().toLowerCase(Locale.getDefault()).contains(q)) {
+                return true;
+            }
+            CharSequence summary = p.getSummary();
+            return summary != null && summary.toString().toLowerCase(Locale.getDefault()).contains(q);
         }
 
         /** Tell the SystemUI hook (which observes the ConfigProvider URI) to re-read settings. */

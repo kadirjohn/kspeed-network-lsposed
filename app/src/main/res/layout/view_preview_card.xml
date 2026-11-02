@@ -6,161 +6,112 @@
     android:id="@+id/preview_card_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginHorizontal="12dp"
     android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="20dp"
+    app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
     app:strokeWidth="1dp"
     app:strokeColor="?attr/colorOutlineVariant"
     app:cardBackgroundColor="?attr/colorSurfaceContainer">
 
-    <LinearLayout
+    <!-- Minimal simulated status bar strip directly inside the card -->
+    <FrameLayout
+        android:id="@+id/mock_statusbar_strip"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="14dp">
+        android:layout_height="44dp"
+        android:paddingHorizontal="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Left: Mock Clock -->
+        <TextView
+            android:id="@+id/mock_statusbar_clock"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:text="09:41"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface" />
+
+        <!-- Right: Indicator + System Icons -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/preview_card_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/preview_card_title"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="?attr/colorPrimary"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/preview_card_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/preview_live_badge"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSecondaryContainer"
-                android:background="@drawable/bg_preview_badge"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp" />
-
-        </LinearLayout>
-
-        <!-- Simulated Status Bar Strip -->
-        <FrameLayout
-            android:id="@+id/mock_statusbar_strip"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_mock_statusbar"
-            android:paddingHorizontal="12dp">
-
-            <!-- Left: Mock Clock -->
-            <TextView
-                android:id="@+id/mock_statusbar_clock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start|center_vertical"
-                android:text="09:41"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface" />
-
-            <!-- Right: Indicator + System Icons -->
+            <!-- The KSpeed Indicator Preview -->
             <LinearLayout
+                android:id="@+id/preview_indicator_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end|center_vertical"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <!-- The KSpeed Indicator Preview -->
-                <LinearLayout
-                    android:id="@+id/preview_indicator_container"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="end|center_vertical"
-                    android:paddingEnd="6dp"
-                    tools:ignore="RtlSymmetry">
-
-                    <TextView
-                        android:id="@+id/preview_line1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
-                        android:singleLine="true"
-                        android:gravity="start|center_vertical"
-                        android:textColor="?attr/colorOnSurface"
-                        tools:text="↓ 340 KB/s" />
-
-                    <TextView
-                        android:id="@+id/preview_line2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
-                        android:singleLine="true"
-                        android:gravity="start|center_vertical"
-                        android:textColor="?attr/colorOnSurface"
-                        tools:text="↑ 1.2 MB/s" />
-
-                </LinearLayout>
-
-                <!-- Mock System Icons Cluster -->
-                <ImageView
-                    android:id="@+id/mock_icon_wifi"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginEnd="4dp"
-                    android:src="@drawable/ic_status_wifi"
-                    app:tint="?attr/colorOnSurface"
-                    android:contentDescription="@null" />
-
-                <ImageView
-                    android:id="@+id/mock_icon_cellular"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginEnd="4dp"
-                    android:src="@drawable/ic_status_cellular"
-                    app:tint="?attr/colorOnSurface"
-                    android:contentDescription="@null" />
-
-                <ImageView
-                    android:id="@+id/mock_icon_battery"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginEnd="3dp"
-                    android:src="@drawable/ic_status_battery"
-                    app:tint="?attr/colorOnSurface"
-                    android:contentDescription="@null" />
+                android:orientation="vertical"
+                android:gravity="end|center_vertical"
+                android:paddingEnd="6dp"
+                tools:ignore="RtlSymmetry">
 
                 <TextView
-                    android:id="@+id/mock_battery_percent"
+                    android:id="@+id/preview_line1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="98%"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:includeFontPadding="false"
+                    android:singleLine="true"
+                    android:gravity="start|center_vertical"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="↓ 340 KB/s" />
+
+                <TextView
+                    android:id="@+id/preview_line2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:singleLine="true"
+                    android:gravity="start|center_vertical"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="↑ 1.2 MB/s" />
 
             </LinearLayout>
 
-        </FrameLayout>
+            <!-- Mock System Icons Cluster -->
+            <ImageView
+                android:id="@+id/mock_icon_wifi"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="4dp"
+                android:src="@drawable/ic_status_wifi"
+                app:tint="?attr/colorOnSurface"
+                android:contentDescription="@null" />
 
-        <!-- Subtitle note -->
-        <TextView
-            android:id="@+id/preview_card_subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/preview_subtitle"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            <ImageView
+                android:id="@+id/mock_icon_cellular"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="4dp"
+                android:src="@drawable/ic_status_cellular"
+                app:tint="?attr/colorOnSurface"
+                android:contentDescription="@null" />
 
-    </LinearLayout>
+            <ImageView
+                android:id="@+id/mock_icon_battery"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="3dp"
+                android:src="@drawable/ic_status_battery"
+                app:tint="?attr/colorOnSurface"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/mock_battery_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="98%"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>
