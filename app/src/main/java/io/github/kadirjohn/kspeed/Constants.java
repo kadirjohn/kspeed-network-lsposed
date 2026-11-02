@@ -37,6 +37,7 @@ public final class Constants {
     public static final String KEY_SOURCE         = "source";          // total | wifi | cellular
     public static final String KEY_SHOW_SHADE     = "show_on_shade";   // show in the notification shade
     public static final String KEY_SHOW_LOCKSCREEN = "show_on_lockscreen";
+    public static final String KEY_AMOLED_BLACK   = "amoled_black";
 
     // Defaults (kept in sync with res/xml/prefs.xml)
     public static final boolean DEF_ENABLED        = true;
@@ -55,4 +56,5 @@ public final class Constants {
     public static final String  DEF_SOURCE         = "total";
     public static final boolean DEF_SHOW_SHADE     = false;
     public static final boolean DEF_SHOW_LOCKSCREEN = false;
+    public static final boolean DEF_AMOLED_BLACK   = false;
 }

@@ -1,35 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Settings root: app bar + preference list. SettingsActivity applies real WindowInsets as
-     padding on this root (top/left/right — status bar + cutout) and on the container (bottom —
-     nav bar + IME). The toolbar keeps its natural actionBarSize below the status bar, so its
-     title can never be squeezed or clipped by inset padding. The explicit colorSurface
-     background keeps the status-bar region the same color as the app bar (the Overdraw
-     lint hint is deliberate and suppressed). -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/settings_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="?attr/colorSurface"
     tools:ignore="Overdraw">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/settings_toolbar"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/settings_appbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
         android:background="?attr/colorSurface"
-        app:title="@string/app_name" />
+        app:elevation="0dp">
 
-    <include
-        android:id="@+id/settings_preview_card"
-        layout="@layout/view_preview_card" />
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/settings_collapsing_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:title="@string/app_name"
+            app:titleCollapseMode="scale"
+            app:contentScrim="?attr/colorSurface"
+            app:collapsedTitleTextAppearance="?attr/textAppearanceTitleLarge"
+            app:expandedTitleTextAppearance="?attr/textAppearanceHeadlineMedium"
+            app:expandedTitleMarginStart="20dp"
+            app:expandedTitleMarginBottom="16dp">
 
-    <FrameLayout
-        android:id="@+id/settings_container"
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/settings_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:id="@+id/settings_content_layout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-</LinearLayout>
+        <!-- Pinned Status Bar Live Preview Card -->
+        <include
+            android:id="@+id/settings_preview_card"
+            layout="@layout/view_preview_card" />
+
+        <!-- Preferences List Container -->
+        <FrameLayout
+            android:id="@+id/settings_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

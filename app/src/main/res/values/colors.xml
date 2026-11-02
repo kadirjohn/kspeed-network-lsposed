@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Launcher icon surface (adaptive background layer). A deep dark surface so the white
-         K mark reads clearly; themed/monochrome launchers replace this with the theme color. -->
+    <!-- Launcher icon surface (adaptive background layer). -->
     <color name="ic_launcher_background">#17201F</color>
+
+    <!-- Fallback burgundy / pink Material 3 palette for Light mode -->
+    <color name="fallback_primary">#904A4E</color>
+    <color name="fallback_on_primary">#FFFFFF</color>
+    <color name="fallback_primary_container">#FFDADA</color>
+    <color name="fallback_on_primary_container">#3B080F</color>
+    <color name="fallback_surface">#FFF8F7</color>
+    <color name="fallback_on_surface">#221919</color>
+    <color name="fallback_surface_container">#F8ECEC</color>
+    <color name="fallback_surface_container_high">#F2E6E6</color>
+    <color name="fallback_surface_container_highest">#ECE0E0</color>
+
+    <!-- AMOLED black theme colors -->
+    <color name="amoled_surface">#000000</color>
+    <color name="amoled_surface_container">#121212</color>
+    <color name="amoled_surface_container_high">#1A1A1A</color>
 </resources>

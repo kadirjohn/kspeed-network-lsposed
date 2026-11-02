@@ -2,9 +2,25 @@
 <resources>
     <!-- Material 3 DayNight base. Dynamic color (Monet) is applied at runtime by
          SettingsActivity via DynamicColors; on devices without dynamic-color support
-         the M3 baseline palette is used. The window draws edge-to-edge and insets
-         are applied by the activity's layout (see SettingsActivity). -->
+         the M3 burgundy/pink fallback palette is used. -->
     <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="colorPrimary">@color/fallback_primary</item>
+        <item name="colorOnPrimary">@color/fallback_on_primary</item>
+        <item name="colorPrimaryContainer">@color/fallback_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/fallback_on_primary_container</item>
+        <item name="colorSurface">@color/fallback_surface</item>
+        <item name="colorOnSurface">@color/fallback_on_surface</item>
+        <item name="colorSurfaceContainer">@color/fallback_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/fallback_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/fallback_surface_container_highest</item>
+    </style>
+
+    <!-- AMOLED black theme: pure pitch black background for OLED screens -->
+    <style name="AppTheme.Amoled" parent="AppTheme">
+        <item name="android:windowBackground">@color/amoled_surface</item>
+        <item name="colorSurface">@color/amoled_surface</item>
+        <item name="colorSurfaceContainer">@color/amoled_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/amoled_surface_container_high</item>
     </style>
 </resources>

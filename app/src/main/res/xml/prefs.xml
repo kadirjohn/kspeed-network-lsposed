@@ -4,9 +4,10 @@
 
     <PreferenceCategory
         app:title="@string/cat_general"
-        app:icon="@drawable/ic_cat_general">
+        app:icon="@drawable/ic_cat_general"
+        app:layout="@layout/preference_category_m3">
 
-        <SwitchPreferenceCompat
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="enabled"
             app:defaultValue="true"
             app:title="@string/pref_enabled_title"
@@ -44,7 +45,8 @@
 
     <PreferenceCategory
         app:title="@string/cat_display"
-        app:icon="@drawable/ic_cat_display">
+        app:icon="@drawable/ic_cat_display"
+        app:layout="@layout/preference_category_m3">
 
         <ListPreference
             app:key="unit"
@@ -55,40 +57,39 @@
             app:useSimpleSummaryProvider="true"
             app:icon="@drawable/ic_pref_straighten" />
 
-        <SwitchPreferenceCompat
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="show_unit"
             app:defaultValue="true"
             app:title="@string/pref_show_unit_title"
             app:summary="@string/pref_show_unit_summary"
             app:icon="@drawable/ic_pref_label" />
 
-        <SwitchPreferenceCompat
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="up_on_top"
             app:defaultValue="false"
             app:title="@string/pref_up_top_title"
             app:summary="@string/pref_up_top_summary"
             app:icon="@drawable/ic_pref_arrow_upward" />
 
-        <SwitchPreferenceCompat
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="dim_zero"
             app:defaultValue="true"
             app:title="@string/pref_dim_zero_title"
             app:summary="@string/pref_dim_zero_summary"
             app:icon="@drawable/ic_pref_opacity" />
 
-        <SwitchPreferenceCompat
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="hide_idle"
             app:defaultValue="false"
             app:title="@string/pref_hide_idle_title"
             app:summary="@string/pref_hide_idle_summary"
             app:icon="@drawable/ic_pref_visibility_off" />
 
-        <SeekBarPreference
+        <io.github.kadirjohn.kspeed.MaterialSliderPreference
             app:key="idle_threshold_kb"
             app:defaultValue="1"
             app:min="0"
             android:max="100"
-            app:showSeekBarValue="true"
             app:title="@string/pref_idle_threshold_title"
             app:dependency="hide_idle"
             app:icon="@drawable/ic_pref_speed" />
@@ -97,14 +98,14 @@
 
     <PreferenceCategory
         app:title="@string/cat_appearance"
-        app:icon="@drawable/ic_cat_appearance">
+        app:icon="@drawable/ic_cat_appearance"
+        app:layout="@layout/preference_category_m3">
 
-        <SeekBarPreference
+        <io.github.kadirjohn.kspeed.MaterialSliderPreference
             app:key="text_size_sp"
             app:defaultValue="8"
             app:min="5"
             android:max="14"
-            app:showSeekBarValue="true"
             app:title="@string/pref_text_size_title"
             app:icon="@drawable/ic_pref_format_size" />
 
@@ -131,20 +132,28 @@
             app:summary="@string/pref_custom_color_ul_summary"
             app:icon="@drawable/ic_pref_arrow_upward" />
 
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
+            app:key="amoled_black"
+            app:defaultValue="false"
+            app:title="@string/pref_amoled_black_title"
+            app:summary="@string/pref_amoled_black_summary"
+            app:icon="@drawable/ic_pref_dark_mode" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
         app:title="@string/cat_surfaces"
-        app:icon="@drawable/ic_cat_surfaces">
+        app:icon="@drawable/ic_cat_surfaces"
+        app:layout="@layout/preference_category_m3">
 
-        <SwitchPreferenceCompat
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="show_on_shade"
             app:defaultValue="false"
             app:title="@string/pref_show_shade_title"
             app:summary="@string/pref_show_shade_summary"
             app:icon="@drawable/ic_pref_notifications" />
 
-        <SwitchPreferenceCompat
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="show_on_lockscreen"
             app:defaultValue="false"
             app:title="@string/pref_show_lockscreen_title"
@@ -155,7 +164,8 @@
 
     <PreferenceCategory
         app:title="@string/cat_about"
-        app:icon="@drawable/ic_cat_about">
+        app:icon="@drawable/ic_cat_about"
+        app:layout="@layout/preference_category_m3">
 
         <io.github.kadirjohn.kspeed.AboutCardPreference
             app:key="about_card"

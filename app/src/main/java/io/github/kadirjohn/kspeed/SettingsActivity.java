@@ -3,6 +3,7 @@ package io.github.kadirjohn.kspeed;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,11 +11,13 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
@@ -38,8 +41,16 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        prefs = getSharedPreferences(Constants.PREFS, Context.MODE_PRIVATE);
+        boolean amoled = prefs.getBoolean(Constants.KEY_AMOLED_BLACK, Constants.DEF_AMOLED_BLACK);
+        int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        if (amoled && nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            setTheme(R.style.AppTheme_Amoled);
+        } else {
+            DynamicColors.applyToActivitiesIfAvailable(getApplication());
+        }
+
         super.onCreate(savedInstanceState);
-        DynamicColors.applyToActivitiesIfAvailable(getApplication());
         setContentView(R.layout.activity_settings);
 
         MaterialToolbar toolbar = findViewById(R.id.settings_toolbar);
@@ -47,7 +58,6 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
         applyInsets();
 
-        prefs = getSharedPreferences(Constants.PREFS, Context.MODE_PRIVATE);
         View previewCard = findViewById(R.id.settings_preview_card);
         if (previewCard != null) {
             previewController = new StatusPreviewController(previewCard);
@@ -85,15 +95,9 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
         }
     }
 
-    /**
-     * Apply the real system insets. Top (status bar + display cutout) pads the root view, so
-     * the toolbar keeps its natural actionBarSize and its title can never be squeezed by
-     * inset padding (padding the toolbar itself clipped the title on the measured device).
-     * Bottom (navigation bar / gesture area + IME) pads the list container, so bottom rows
-     * stay reachable and the hex field is visible with the keyboard open.
-     */
     private void applyInsets() {
         final View root = findViewById(R.id.settings_root);
+        final View appbar = findViewById(R.id.settings_appbar);
         final View container = findViewById(R.id.settings_container);
         root.setOnApplyWindowInsetsListener((v, windowInsets) -> {
             WindowInsetsCompat insets = WindowInsetsCompat.toWindowInsetsCompat(windowInsets);
@@ -103,9 +107,16 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
             int right = insets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
             int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()
                     | WindowInsetsCompat.Type.ime()).bottom;
-            root.setPadding(left, top, right, root.getPaddingBottom());
-            container.setPadding(container.getPaddingLeft(), container.getPaddingTop(),
-                    container.getPaddingRight(), bottom);
+
+            if (appbar != null) {
+                appbar.setPadding(left, top, right, appbar.getPaddingBottom());
+            } else {
+                root.setPadding(left, top, right, root.getPaddingBottom());
+            }
+            if (container != null) {
+                container.setPadding(container.getPaddingLeft(), container.getPaddingTop(),
+                        container.getPaddingRight(), bottom);
+            }
             return WindowInsetsCompat.CONSUMED.toWindowInsets();
         });
     }
@@ -241,6 +252,16 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
         }
 
         @Override
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            setDivider(null);
+            setDividerHeight(0);
+            RecyclerView rv = getListView();
+            rv.setClipToPadding(false);
+            rv.addItemDecoration(new CategoryCardItemDecoration(requireContext()));
+        }
+
+        @Override
         public void onPause() {
             super.onPause();
             SharedPreferences sp = getPreferenceManager().getSharedPreferences();
@@ -252,6 +273,12 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
             notifyHook();
+            if (Constants.KEY_AMOLED_BLACK.equals(key)) {
+                if (getActivity() != null) {
+                    getActivity().recreate();
+                }
+                return;
+            }
             if (getActivity() instanceof SettingsActivity) {
                 ((SettingsActivity) getActivity()).updatePreview();
             }

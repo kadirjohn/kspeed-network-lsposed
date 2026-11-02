@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fallback burgundy / pink Material 3 palette for Dark mode -->
+    <color name="fallback_primary">#FFB3B6</color>
+    <color name="fallback_on_primary">#561D22</color>
+    <color name="fallback_primary_container">#733337</color>
+    <color name="fallback_on_primary_container">#FFDADA</color>
+    <color name="fallback_surface">#1A1112</color>
+    <color name="fallback_on_surface">#F0DEE0</color>
+    <color name="fallback_surface_container">#271D1E</color>
+    <color name="fallback_surface_container_high">#322828</color>
+    <color name="fallback_surface_container_highest">#3D3233</color>
+</resources>
