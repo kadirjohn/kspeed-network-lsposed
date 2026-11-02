@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome/themed-icon layer: the same K + download-arrow composition as the foreground,
+     single-color (alpha only; the launcher applies the theme tint). The arrow stays behind
+     the K in the lower part with its tip on the same baseline, so the themed silhouette
+     matches the normal icon. No background square. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M68,56 h7 v13 h-7 Z M59.5,69 h24 l-12,12.6 Z" />
+
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M26,34 h10.2 v20.4 l20.4,-20.4 h13.6 l-23.8,23.8 l23.8,23.8 h-13.6 l-20.4,-20.4 v20.4 h-10.2 Z" />
+</vector>

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+    <!-- Material 3 DayNight base. Dynamic color (Monet) is applied at runtime by
+         SettingsActivity via DynamicColors; on devices without dynamic-color support
+         the M3 baseline palette is used. The window draws edge-to-edge and insets
+         are applied by the activity's layout (see SettingsActivity). -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
 </resources>

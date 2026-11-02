@@ -30,6 +30,7 @@
     <string name="pref_custom_color_summary">e.g. #FFFFFF — used only when Color = Custom</string>
     <string name="pref_custom_color_ul_title">Custom color — upload (hex)</string>
     <string name="pref_custom_color_ul_summary">e.g. #80C0FF — used only when Color = Custom</string>
+    <string name="invalid_hex">Enter a color as #RRGGBB (e.g. #80C0FF)</string>
 
     <string name="pref_source_title">Traffic source</string>
     <string name="pref_up_top_title">Show upload on top</string>

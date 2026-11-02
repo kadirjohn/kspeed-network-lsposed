@@ -75,6 +75,10 @@ dependencies {
     // Settings UI (runs in our own app process, so AndroidX is fine here).
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.preference:preference:1.2.1'
+    // Material 3 theming + dynamic color (Monet) for the settings app. minSdk 31 means
+    // dynamic color is available on every supported device; M3 falls back to its
+    // baseline light/dark palette elsewhere. App-side only — never in SystemUI.
+    implementation 'com.google.android.material:material:1.12.0'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.17'

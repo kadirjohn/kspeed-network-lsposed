@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings root: app bar + preference list. SettingsActivity applies real WindowInsets as
+     padding on this root (top/left/right — status bar + cutout) and on the container (bottom —
+     nav bar + IME). The toolbar keeps its natural actionBarSize below the status bar, so its
+     title can never be squeezed or clipped by inset padding. The explicit colorSurface
+     background keeps the status-bar region the same color as the app bar (the Overdraw
+     lint hint is deliberate and suppressed). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/settings_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface"
+    tools:ignore="Overdraw">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/settings_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        app:title="@string/app_name" />
+
+    <FrameLayout
+        android:id="@+id/settings_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>

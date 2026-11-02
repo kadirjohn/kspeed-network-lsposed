@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launcher icon surface (adaptive background layer). A deep dark surface so the white
+         K mark reads clearly; themed/monochrome launchers replace this with the theme color. -->
+    <color name="ic_launcher_background">#17201F</color>
+</resources>

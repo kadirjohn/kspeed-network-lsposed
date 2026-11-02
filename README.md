@@ -64,8 +64,7 @@ KSpeed Network is placed before the system-icon cluster. It also measures follow
 reserves the additional gap needed if a negative margin or translation reaches back over the speed
 indicator, including when no system icons are visible. It changes only its own margin.
 
-The compatibility adjustment is implemented entirely inside KSpeed Network. Remaining development
-focuses on KSpeed's settings layout, Material 3 / Monet design, launcher icon and validation.
+The compatibility adjustment is implemented entirely inside KSpeed Network.
 
 ## Build and check
 
@@ -108,12 +107,13 @@ Keep the signing key safe; an APK signed by another key cannot update an existin
 
 ## Investigation and next work
 
-Remaining work is limited to KSpeed: settings system-bar insets, Material 3 / Monet,
-adaptive/monochrome launcher icons and validation, while preserving all settings.
-
-The settings screen still uses AppCompat preferences. A full Material 3 redesign and a native
-adaptive/monochrome launcher icon without the current light outer plate are not included in this
-placement fix.
+The settings screen uses Material 3 with dynamic color (Monet) where the wallpaper supports it
+(every installable device — minSdk 31), falling back to the Material baseline palette otherwise.
+System-bar and display-cutout insets are applied from real `WindowInsets` data: the app bar keeps
+its natural height below the status bar, and the preference list is padded above the navigation
+bar and the keyboard. The launcher icon is a native adaptive icon (foreground mark + dark surface
+background) with a matching `monochrome` layer for themed icons; it no longer draws the white
+inner plate seen with the legacy icon.
 
 ## License and attribution
 

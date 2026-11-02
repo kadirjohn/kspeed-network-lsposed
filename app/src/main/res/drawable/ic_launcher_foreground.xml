@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive icon foreground: the fork's mark — the artistic K from the original legacy icon
+     in front, with the green download arrow behind it in the lower part of the composition.
+     The arrow rides alongside the K's lower arm (tucked behind it), and its tip rests on the
+     same baseline as the K's bottom, so both glyphs share one ground. Everything sits inside
+     the 66dp safe zone of the 108dp adaptive canvas. No background plate is drawn here; the
+     launcher supplies the surface. The monochrome layer reuses this exact silhouette so
+     normal and themed icons keep the same visual weight. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Green download arrow (behind the K): shaft above, head below; tip on the K's baseline. -->
+    <path
+        android:fillColor="#FF8EE3C3"
+        android:pathData="M68,56 h7 v13 h-7 Z M59.5,69 h24 l-12,12.6 Z" />
+
+    <!-- Artistic white K (the original legacy glyph, front layer). -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M26,34 h10.2 v20.4 l20.4,-20.4 h13.6 l-23.8,23.8 l23.8,23.8 h-13.6 l-20.4,-20.4 v20.4 h-10.2 Z" />
+</vector>
