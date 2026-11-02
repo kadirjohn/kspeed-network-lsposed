@@ -140,7 +140,7 @@
             app:key="view_source"
             app:persistent="false"
             app:title="@string/pref_source_repo_title"
-            app:summary="github.com/zazaulola/magisk-network-indicator" />
+            app:summary="github.com/kadirjohn/kspeed-network-lsposed" />
 
     </PreferenceCategory>
 

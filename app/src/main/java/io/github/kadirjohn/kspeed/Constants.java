@@ -1,19 +1,19 @@
-package com.nogrep.netspeed;
+package io.github.kadirjohn.kspeed;
 
 /** Shared keys/defaults between the settings UI and the SystemUI hook. */
 public final class Constants {
     private Constants() {}
 
-    public static final String PKG = "com.nogrep.netspeed";
+    public static final String PKG = "io.github.kadirjohn.kspeed";
     public static final String SYSTEMUI_PKG = "com.android.systemui";
 
     /** SharedPreferences file name (must match on both write and XSharedPreferences read sides). */
     public static final String PREFS = "netspeed_prefs";
 
-    public static final String LOG_TAG = "[NetSpeed]";
+    public static final String LOG_TAG = "[KSpeed]";
 
     // Update check (GitHub Releases)
-    public static final String REPO = "zazaulola/lsposed-netspeed-indicator";
+    public static final String REPO = "kadirjohn/kspeed-network-lsposed";
     public static final String RELEASES_API = "https://api.github.com/repos/" + REPO + "/releases/latest";
     public static final String RELEASES_PAGE = "https://github.com/" + REPO + "/releases/latest";
     public static final String REPO_PAGE = "https://github.com/" + REPO;

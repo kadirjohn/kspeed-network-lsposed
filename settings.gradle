@@ -18,5 +18,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'NetSpeedIndicator'
+rootProject.name = 'KSpeedNetwork'
 include ':app'

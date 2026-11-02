@@ -1,4 +1,4 @@
-package com.nogrep.netspeed;
+package io.github.kadirjohn.kspeed;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XposedBridge;

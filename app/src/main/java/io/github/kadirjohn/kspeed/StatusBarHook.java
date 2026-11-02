@@ -1,6 +1,5 @@
-package com.nogrep.netspeed;
+package io.github.kadirjohn.kspeed;
 
-import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,13 +12,13 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 /**
- * Installs the SystemUI hook and inserts the indicator immediately LEFT of the battery, on every
+ * Installs the SystemUI hook and inserts the indicator before the system-icon cluster, on every
  * status-bar surface (collapsed bar, notification-shade header, lock screen).
  *
  * Unified anchor: every surface contains a {@code StatusIconContainer} (id {@code statusIcons}) as
  * the system-icon cluster, with the battery (a Compose view on A16) sitting right after it in the
  * same parent. So we hook StatusIconContainer, and for each instance insert our view into its parent
- * right after it → directly left of the battery. The surface is detected from the ancestor ids; each
+ * before it → left of DND, Data Saver and the battery. The surface is detected from the ancestor ids; each
  * surface gets its own reusable view instance that self-hides per the user's per-surface setting.
  */
 public class StatusBarHook {
@@ -88,7 +87,12 @@ public class StatusBarHook {
             return;
         }
         int idx = parent.indexOfChild(statusIcons);
-        idx = (idx < 0) ? parent.getChildCount() : idx + 1; // right after the icon cluster
+        if (idx < 0 || !(parent instanceof LinearLayout)
+                || ((LinearLayout) parent).getOrientation() != LinearLayout.HORIZONTAL) {
+            // A sibling index only reserves space in a flowing horizontal container. On an
+            // unrecognised ROM layout, leave the stock bar alone instead of drawing over it.
+            return;
+        }
 
         NetSpeedView view = new NetSpeedView(parent.getContext(), surface);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(

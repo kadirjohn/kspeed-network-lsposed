@@ -42,7 +42,7 @@
              A16). Only the module's own indicator settings are exposed, so exported is harmless. -->
         <provider
             android:name=".ConfigProvider"
-            android:authorities="com.nogrep.netspeed.config"
+            android:authorities="${applicationId}.config"
             android:exported="true" />
     </application>
 

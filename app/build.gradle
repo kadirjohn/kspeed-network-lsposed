@@ -11,15 +11,15 @@ if (keystorePropsFile.exists()) {
 }
 
 android {
-    namespace 'com.nogrep.netspeed'
+    namespace 'io.github.kadirjohn.kspeed'
     compileSdk 36
 
     defaultConfig {
-        applicationId 'com.nogrep.netspeed'
-        minSdk 31          // Android 12 — BatteryMeterView lives in com.android.systemui.battery since API 31
+        applicationId 'io.github.kadirjohn.kspeed'
+        minSdk 31          // Android 12; runtime support also depends on the ROM's status-icon layout.
         targetSdk 36       // Android 16
-        versionCode 3
-        versionName '1.0.2'
+        versionCode 4
+        versionName '1.0.3-dev'
     }
 
     signingConfigs {
@@ -51,6 +51,14 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+    testOptions {
+        unitTests.includeAndroidResources = true
+        unitTests.all {
+            // Android 16's shared-memory shim uses the JDK's FileDescriptor access bridge.
+            jvmArgs '--add-exports=java.base/jdk.internal.access=ALL-UNNAMED'
+        }
+    }
+
     // The Xposed API is provided by the framework at runtime; never bundle it.
     packagingOptions {
         resources {
@@ -67,6 +75,9 @@ dependencies {
     // Settings UI (runs in our own app process, so AndroidX is fine here).
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.preference:preference:1.2.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.17'
 
     // Align legacy kotlin-stdlib-jdk7/jdk8 (pulled in transitively at 1.6.21) with the merged
     // kotlin-stdlib 1.8.22 to avoid duplicate-class errors. Since Kotlin 1.8 the jdk7/jdk8

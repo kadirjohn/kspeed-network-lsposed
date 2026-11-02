@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Net Speed Indicator</string>
-    <string name="xposed_desc">Shows live network up/down speed in the status bar, left of the battery. Scope: SystemUI.</string>
+    <string name="app_name">KSpeed Network</string>
+    <string name="xposed_desc">Live network speed before the system status icons. Scope: SystemUI.</string>
 
     <!-- Category titles -->
     <string name="cat_general">General</string>

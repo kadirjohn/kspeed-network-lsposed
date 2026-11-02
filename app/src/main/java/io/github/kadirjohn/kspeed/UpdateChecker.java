@@ -1,4 +1,4 @@
-package com.nogrep.netspeed;
+package io.github.kadirjohn.kspeed;
 
 import android.content.Context;
 import android.os.Handler;

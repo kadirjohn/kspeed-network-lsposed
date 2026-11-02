@@ -1,143 +1,123 @@
-# Net Speed Indicator
+# KSpeed Network
 
-[![Release](https://img.shields.io/github/v/release/zazaulola/lsposed-netspeed-indicator?sort=semver)](https://github.com/zazaulola/lsposed-netspeed-indicator/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/zazaulola/lsposed-netspeed-indicator/total)](https://github.com/zazaulola/lsposed-netspeed-indicator/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Android](https://img.shields.io/badge/Android-12%E2%80%9316-3DDC84?logo=android&logoColor=white)
+![Minimum Android](https://img.shields.io/badge/Minimum_Android-12_(API_31)-3DDC84?logo=android&logoColor=white)
 
-An **LSPosed module** that shows live network up/down speed **inline in the status bar, immediately
-left of the battery** — on stock Android, verified on **Pixel 8 Pro / Android 16**.
+An LSPosed module that displays network upload and download speed before the system status icons.
+This fork is based on [Net Speed Indicator by zazaulola](https://github.com/zazaulola/lsposed-netspeed-indicator).
 
-![Status bar — default](assets/statusbar-default.png)
-
-Two-line download/upload (or combined), with drawn ▼/▲ icons, adaptive or fixed units, per-direction
-colors, and optional placement in the notification shade and on the lock screen.
-
-![Status bar — custom colors](assets/statusbar-colors.png)
-
-## Why an LSPosed module (and not a "pure" Magisk module)
-
-Stock Android has no built-in status-bar net-speed indicator. To place a widget *among the system
-icons, left of the battery*, code has to run **inside the SystemUI process** and insert a view into
-its layout. A plain Magisk overlay (RRO) can only swap resources — it cannot add a view or logic. So
-the robust, OTA-survivable way is an **Xposed/LSPosed hook** of `com.android.systemui`. LSPosed is
-itself a Zygisk/Magisk module, so you stay within the Magisk ecosystem:
-
+```text
+Network speed · Data Saver · DND · Battery / Duo
 ```
-Magisk ──> Zygisk ──> LSPosed (or Vector) ──> THIS module (hooks SystemUI)
-```
+
+The indicator is a sibling before the system-icon container. Android handles icons appearing and
+disappearing inside that container; no list of DND, Data Saver or other icon names is needed.
 
 ## Requirements
 
-- A rooted device with **Magisk** + **Zygisk** enabled.
-- **LSPosed** active. On Android 16 use the maintained fork **JingMatrix/LSPosed ≥ v1.11.0** or its
-  successor **Vector**.
-- Built and tested on **Pixel 8 Pro / Android 16**. Other Pixels should work; OEM skins (One UI,
-  HyperOS) are out of scope.
+- Android **12 / API 31** or newer is the installation minimum.
+- A working LSPosed-compatible framework, with this module enabled for **System UI**.
+- A compatible SystemUI view hierarchy: `StatusIconContainer` in a horizontal `LinearLayout`.
+  A minimum SDK alone does not guarantee compatibility with every ROM or Android version.
+
+Upstream reported testing on Pixel 8 Pro / Android 16. Investigation for this fork used a Xiaomi
+25010PN30G (`xuanyuan`) running an Android **17 / API 37** custom ROM. See the investigation report for
+the distinction between measured existing behaviour, automated tests and pending device checks.
 
 ## Install
 
-1. Download the latest **`app-release.apk`** from the
-   [**Releases**](https://github.com/zazaulola/lsposed-netspeed-indicator/releases/latest) page and
-   install it (`adb install -r app-release.apk` or via a file manager).
-2. Open the **LSPosed / Vector manager → Modules**, enable **Net Speed Indicator**.
-3. Open its **Scope** and tick **System UI** (auto-suggested via `xposedscope`).
-4. Restart SystemUI: `adb shell su -c 'killall com.android.systemui'` — or reboot.
-5. Open the **Net Speed Indicator** app to configure. Changes apply live (no restart needed).
+Build the debug APK or use a release from this fork when one is published:
+[KSpeed Network releases](https://github.com/kadirjohn/kspeed-network-lsposed/releases).
+
+1. Install `app/build/outputs/apk/debug/app-debug.apk`.
+2. Disable the original **Net Speed Indicator** module if it is installed.
+3. Enable **KSpeed Network** in LSPosed / Vector and select **System UI** as its scope.
+4. Restart SystemUI or reboot, then open KSpeed Network to configure it.
+
+The fork uses package `io.github.kadirjohn.kspeed` and provider `io.github.kadirjohn.kspeed.config`, so
+it can be installed alongside the original without deleting its data. **Do not enable both hooks at
+once.** Their preferences are separate; installation does not automatically import upstream settings.
+During the local device investigation, the original settings were copied into the fork using ADB.
 
 ## Settings
 
-- **Display mode**: Down + Up (two lines) · Combined · Download only
-- **Refresh interval**: 0.5 / 1 / 2 / 3 s
-- **Traffic source**: Total · Wi-Fi only · Cellular only
-- **Units**: Auto (B/s, KB/s, MB/s) · Auto (bit/s, Kbit/s, Mbit/s) · or a **fixed** magnitude
-  (KB/s, MB/s, Kbit/s, Mbit/s). With a fixed unit the label can be hidden and the bare number is
-  still unambiguous; with an Auto unit the label is always shown.
-- **Show upload on top** (swap UL/DL order) · **Dim arrow when idle** (semi-transparent ▲/▼ at 0)
-- **Show unit label** · **Hide when idle** + threshold · **Text size**
-- **Color**: auto (match status-bar tint) or custom **per-direction** hex (separate download / upload)
-- **Where to show**: collapsed status bar (always) · notification shade · lock screen
+All existing preference keys, types, defaults and options are retained:
 
-## Build from source
+- Display mode: download + upload, combined, or download only.
+- Refresh interval: 0.5 / 1 / 2 / 3 seconds.
+- Traffic source: total, Wi-Fi, or cellular.
+- Units: automatic bytes/bits or fixed KB/s, MB/s, Kbit/s, Mbit/s; optional fixed-unit labels.
+- Upload on top, idle-arrow dimming, hide when idle, and idle threshold.
+- Text size; status-bar tint matching or separate custom download/upload colours.
+- Optional notification-shade and lock-screen indicators.
 
-Requirements: **JDK 17–21** (AGP 8.x doesn't support JDK 24+) and the **Android SDK** (platform 36,
-build-tools 36). Point the build at a suitable JDK via `JAVA_HOME`.
+The indicator keeps its original two-line appearance, but each arrow now stays next to its own value.
+The previous 52 dp minimum width and full-width, end-aligned text rows have been removed.
+
+## Duo Status Bar compatibility
+
+Duo's edge-spacing setting can give its ring a **negative start margin**. At the measured size of
+70 px and edge spacing of 78%, the ring overlaps its preceding sibling by 16 px. Upstream Net Speed
+Indicator inserted directly before the battery/Duo, exposing its text to this overlap.
+
+KSpeed Network is placed before the system-icon cluster. It also measures following siblings and
+reserves the additional gap needed if a negative margin or translation reaches back over the speed
+indicator, including when no system icons are visible. It changes only its own margin.
+
+The separate **stock battery + Duo** collision belongs to Duo's placement/hiding logic. This fork does
+not modify Duo. Setting Duo's edge spacing to 100% and position to 0 dp removes the measured negative
+margin; the report details the Android 17 Compose battery detection issue and a proper Duo-side fix.
+
+## Build and check
+
+Use JDK 17–21 and Android SDK platform 36. On a machine with Android Studio installed:
 
 ```bash
-# Debug build (unsigned-by-debug-key)
-JAVA_HOME=/path/to/jdk-21 ./gradlew :app:assembleDebug
-# -> app/build/outputs/apk/debug/app-debug.apk
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+ANDROID_HOME="$HOME/Library/Android/sdk" \
+./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
 ```
 
-For a **signed release**, create `keystore.properties` in the project root (gitignored):
+The tests reproduce overlap with no visible icons, icon appearance/disappearance, translated rings,
+RTL layout, and different upload/download text widths. Runtime code injected into SystemUI uses
+platform views; AndroidX remains in the separate settings app.
+
+Release signing uses a gitignored `keystore.properties`:
 
 ```properties
 storeFile=release.jks
-storePassword=********
-keyAlias=netspeed
-keyPassword=********
+storePassword=...
+keyAlias=kspeed
+keyPassword=...
 ```
 
-…with a keystore generated by:
+Then run `./gradlew :app:assembleRelease`. Without a release keystore the release APK is unsigned.
+Keep the signing key safe; an APK signed by another key cannot update an existing installation.
 
-```bash
-keytool -genkeypair -v -keystore release.jks -alias netspeed \
-  -keyalg RSA -keysize 2048 -validity 10000
-```
+## Implementation
 
-then:
+- `StatusBarHook` hooks `StatusIconContainer.onFinishInflate` and `onMeasure`, then posts insertion
+  into the horizontal parent **at** `indexOf(statusIcons)`, rather than after it. Other parent types
+  are skipped because sibling order does not reserve space in an overlay layout.
+- One tagged view is inserted per parent. Collapsed, shade and keyguard surfaces retain their
+  existing detection and visibility settings.
+- `StatusBarSpacing` checks visible following siblings after layout and during sampling, and updates
+  only KSpeed's end margin. Its layout listener is removed when the view detaches.
+- `NetSpeedView` samples `TrafficStats` or radio interfaces and mirrors the local clock's tint.
+- `ConfigProvider` exposes only indicator settings over Binder; settings changes notify its observer.
+- The app's update checker and source links target **this fork**, not the upstream release feed.
 
-```bash
-JAVA_HOME=/path/to/jdk-21 ./gradlew :app:assembleRelease
-# -> app/build/outputs/apk/release/app-release.apk
-```
+## Investigation and next work
 
-`./build-and-install.sh` builds and installs to a connected device. **Keep a backup of your keystore**
-— without it you can't ship in-place updates to a signed install.
+The Turkish [Duo conflict investigation and agent handoff](docs/DUO_CONFLICT_HANDOFF_TR.md) describes
+every supplied screenshot, measured device coordinates, implemented changes, remaining Duo work,
+and a Material 3 / Monet migration plan that preserves all settings.
 
-## How it works
+The settings screen still uses AppCompat preferences. A full Material 3 redesign and a native
+adaptive/monochrome launcher icon without the current light outer plate are specified in the handoff
+and are not included in this placement fix.
 
-- **Unified anchor — `StatusIconContainer` (id `statusIcons`).** Every status-bar surface (collapsed
-  bar, notification-shade / Quick-Settings header, lock screen) contains a `statusIcons` cluster with
-  the battery sitting right after it in the same parent. The module hooks `StatusIconContainer`
-  (`onFinishInflate` + `onMeasure`) and, for each instance, inserts its view into that instance's
-  parent at `indexOf(statusIcons) + 1` → **directly left of the battery**. Resource ids are resolved
-  **by name**, never numeric. Every hook/insert is wrapped in try/catch + `XposedBridge.log`, so it
-  can never crash SystemUI.
-- **Multi-surface.** The surface is detected from ancestor ids (`status_bar` → collapsed,
-  `split_shade_status_bar`/`shade_header` → shade, `keyguard_header` → lock screen). Each surface gets
-  its own view instance; the shade and lock-screen ones self-hide unless enabled. Insertion is
-  idempotent (per-parent tag guard + deferred `post`), surviving re-attach / config changes.
-- **Android 16 note:** with the `newStatusBarIcons` flag the battery is no longer a `BatteryMeterView`
-  (`R.id.battery` is gone) — it's a Jetpack **Compose** view after `statusIcons`. Anchoring to
-  `statusIcons` is what makes "left of the battery" robust. The collapsed `PhoneStatusBarView` is
-  itself hosted in a `ComposeView`, but `statusIcons` and its siblings are still classic Views.
-- Direction markers are **drawn programmatically** (a triangle `Drawable`), tinted per direction and
-  dimmed when idle — no dependency on the system font's arrow glyphs.
-- Speed is sampled once per interval via `elapsedRealtime`; counter resets / source changes emit 0
-  instead of a spike. **Total** uses `TrafficStats` (de-dupes VPN/stacked ifaces); **Wi-Fi** sums
-  `wlan*` and **Cellular** sums `rmnet*`/`ccmni*` from `/proc/net/dev`. The loop pauses when the
-  status-bar window is hidden (AOD / fullscreen).
-- Color follows the status-bar tint by mirroring the clock in the **same root** (or custom
-  per-direction hex), so dark/light flips match and the wrong (keyguard) clock is never used.
+## License and attribution
 
-### Settings transport — a ContentProvider, not XSharedPreferences
-
-On Android 16 the SystemUI process **cannot read the module's prefs file at all** (verified on device:
-`canRead=false`). DAC perms *and* SELinux app-isolation categories block cross-app file reads, and
-`MODE_WORLD_READABLE` no longer makes the file readable on this framework — so `XSharedPreferences` is
-a dead end. Instead, settings travel over **binder**: the app hosts an exported `ConfigProvider`; the
-hook pulls all values via `ContentResolver.call("get")` on a background thread, refreshing on attach
-and whenever the user changes a setting (the settings screen calls `notifyChange`, firing the hook's
-`ContentObserver`). Sane defaults ship in the hook, so it works before the app is ever opened.
-
-## Troubleshooting
-
-- **Nothing appears:** confirm the module is enabled **and** System UI is in its scope, then restart
-  SystemUI. Check `adb logcat | grep NetSpeed` for `[NetSpeed]` lines.
-- **Not on shade / lock screen:** enable those toggles under *Where to show*.
-- **Cramped layout:** lower the text size, or use *Combined* / *Download only*.
-
-## License
-
-[MIT](LICENSE) © zazaulola
+[MIT](LICENSE). Original work © 2026 zazaulola. KSpeed Network is maintained as a separate fork by
+kadirjohn. The original copyright and license are retained.

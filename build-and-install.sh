@@ -29,7 +29,7 @@ adb install -r "$APK"
 
 echo
 echo ">> Next steps on the phone:"
-echo "   1. LSPosed Manager -> Modules -> enable 'Net Speed Indicator'"
+echo "   1. LSPosed Manager -> Modules -> enable 'KSpeed Network'"
 echo "   2. Scope -> tick 'System UI'"
 echo "   3. Restart SystemUI:  adb shell su -c 'killall com.android.systemui'"
 echo "      (or reboot)"

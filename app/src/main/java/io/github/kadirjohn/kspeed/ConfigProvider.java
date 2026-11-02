@@ -1,4 +1,4 @@
-package com.nogrep.netspeed;
+package io.github.kadirjohn.kspeed;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class ConfigProvider extends ContentProvider {
 
-    public static final String AUTHORITY = "com.nogrep.netspeed.config";
+    public static final String AUTHORITY = Constants.PKG + ".config";
     public static final Uri URI = Uri.parse("content://" + AUTHORITY + "/prefs");
     public static final String METHOD_GET = "get";
 

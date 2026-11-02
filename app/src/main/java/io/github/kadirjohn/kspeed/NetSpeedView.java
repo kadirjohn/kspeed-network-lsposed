@@ -1,4 +1,4 @@
-package com.nogrep.netspeed;
+package io.github.kadirjohn.kspeed;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 
 /**
  * The indicator view: a tiny two-line LinearLayout (download / upload, each with a drawn ▼/▲ icon)
- * placed left of the battery on one status-bar surface. Runs its own refresh loop on the SystemUI
+ * placed before the system-icon cluster on one status-bar surface. Runs its own refresh loop on the SystemUI
  * main thread while attached AND visible; reads settings from {@link ConfigProvider} over binder.
  */
 @SuppressLint("ViewConstructor")
@@ -54,6 +54,7 @@ public class NetSpeedView extends LinearLayout {
     private final ArrowDrawable downArrow = new ArrowDrawable(true);
     private final ArrowDrawable upArrow = new ArrowDrawable(false);
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private final StatusBarSpacing spacing = new StatusBarSpacing(this);
 
     private Bundle config = new Bundle();
     private ContentObserver observer;
@@ -71,6 +72,7 @@ public class NetSpeedView extends LinearLayout {
             try {
                 interval = intervalMs();
                 update();
+                spacing.update();
             } catch (Throwable ignored) {
             }
             if (running) {
@@ -84,23 +86,27 @@ public class NetSpeedView extends LinearLayout {
         this.surface = surface;
         setTag(VIEW_TAG);
         setOrientation(VERTICAL);
-        setGravity(Gravity.CENTER);
+        setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
         setClipChildren(false);
         int pad = dp(c, 4);
         setPadding(pad, 0, pad, 0);
-        setMinimumWidth(dp(c, 52));
 
         line1 = makeLine(c);
         line2 = makeLine(c);
-        addView(line1);
-        addView(line2);
+        addView(line1, new LinearLayout.LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        addView(line2, new LinearLayout.LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     }
 
     private TextView makeLine(Context c) {
         TextView t = new TextView(c);
         t.setIncludeFontPadding(false);
         t.setSingleLine(true);
-        t.setGravity(Gravity.END);
+        // Each row measures its own text plus drawable. MATCH_PARENT + END leaves the
+        // drawable at the far edge of the wider row while the short number moves away.
+        t.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        t.setCompoundDrawablePadding(dp(c, 1));
         t.setLineSpacing(0f, 0.9f);
         return t;
     }
