@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <!-- Single download line: down arrow + line -->
+    <path
+        android:fillColor="?attr/colorPrimary"
+        android:pathData="M7,13h6l-3,5z" />
+    <path
+        android:fillColor="?attr/colorOnSurfaceVariant"
+        android:pathData="M16,14h10v3H16z" />
+</vector>

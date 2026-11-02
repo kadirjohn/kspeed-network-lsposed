@@ -124,19 +124,18 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
             Context ctx = getContext();
 
-            Preference check = findPreference("check_update");
-            if (check != null && ctx != null) {
-                check.setSummary("Installed: v" + UpdateChecker.currentVersion(ctx) + " · tap to check");
-                check.setOnPreferenceClickListener(p -> {
-                    runUpdateCheck(true);
-                    return true;
-                });
-            }
-            Preference source = findPreference("view_source");
-            if (source != null) {
-                source.setOnPreferenceClickListener(p -> {
-                    openUrl(Constants.REPO_PAGE);
-                    return true;
+            AboutCardPreference aboutCard = findPreference("about_card");
+            if (aboutCard != null) {
+                aboutCard.setCallback(new AboutCardPreference.Callback() {
+                    @Override
+                    public void onCheckUpdate() {
+                        runUpdateCheck(true);
+                    }
+
+                    @Override
+                    public void onViewSource() {
+                        openUrl(Constants.REPO_PAGE);
+                    }
                 });
             }
 

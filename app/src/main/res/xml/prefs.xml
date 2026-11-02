@@ -2,21 +2,25 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="@string/cat_general">
+    <PreferenceCategory
+        app:title="@string/cat_general"
+        app:icon="@drawable/ic_cat_general">
 
         <SwitchPreferenceCompat
             app:key="enabled"
             app:defaultValue="true"
             app:title="@string/pref_enabled_title"
-            app:summary="@string/pref_enabled_summary" />
+            app:summary="@string/pref_enabled_summary"
+            app:icon="@drawable/ic_pref_visibility" />
 
-        <ListPreference
+        <io.github.kadirjohn.kspeed.IllustratedListPreference
             app:key="mode"
             app:defaultValue="both"
             app:title="@string/pref_mode_title"
             app:entries="@array/mode_entries"
             app:entryValues="@array/mode_values"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            app:icon="@drawable/ic_pref_view_agenda" />
 
         <ListPreference
             app:key="interval_ms"
@@ -24,19 +28,23 @@
             app:title="@string/pref_interval_title"
             app:entries="@array/interval_entries"
             app:entryValues="@array/interval_values"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            app:icon="@drawable/ic_pref_timer" />
 
-        <ListPreference
+        <io.github.kadirjohn.kspeed.IllustratedListPreference
             app:key="source"
             app:defaultValue="total"
             app:title="@string/pref_source_title"
             app:entries="@array/source_entries"
             app:entryValues="@array/source_values"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            app:icon="@drawable/ic_pref_swap_vert" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cat_display">
+    <PreferenceCategory
+        app:title="@string/cat_display"
+        app:icon="@drawable/ic_cat_display">
 
         <ListPreference
             app:key="unit"
@@ -44,31 +52,36 @@
             app:title="@string/pref_unit_title"
             app:entries="@array/unit_entries"
             app:entryValues="@array/unit_values"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            app:icon="@drawable/ic_pref_straighten" />
 
         <SwitchPreferenceCompat
             app:key="show_unit"
             app:defaultValue="true"
             app:title="@string/pref_show_unit_title"
-            app:summary="@string/pref_show_unit_summary" />
+            app:summary="@string/pref_show_unit_summary"
+            app:icon="@drawable/ic_pref_label" />
 
         <SwitchPreferenceCompat
             app:key="up_on_top"
             app:defaultValue="false"
             app:title="@string/pref_up_top_title"
-            app:summary="@string/pref_up_top_summary" />
+            app:summary="@string/pref_up_top_summary"
+            app:icon="@drawable/ic_pref_arrow_upward" />
 
         <SwitchPreferenceCompat
             app:key="dim_zero"
             app:defaultValue="true"
             app:title="@string/pref_dim_zero_title"
-            app:summary="@string/pref_dim_zero_summary" />
+            app:summary="@string/pref_dim_zero_summary"
+            app:icon="@drawable/ic_pref_opacity" />
 
         <SwitchPreferenceCompat
             app:key="hide_idle"
             app:defaultValue="false"
             app:title="@string/pref_hide_idle_title"
-            app:summary="@string/pref_hide_idle_summary" />
+            app:summary="@string/pref_hide_idle_summary"
+            app:icon="@drawable/ic_pref_visibility_off" />
 
         <SeekBarPreference
             app:key="idle_threshold_kb"
@@ -77,11 +90,14 @@
             android:max="100"
             app:showSeekBarValue="true"
             app:title="@string/pref_idle_threshold_title"
-            app:dependency="hide_idle" />
+            app:dependency="hide_idle"
+            app:icon="@drawable/ic_pref_speed" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cat_appearance">
+    <PreferenceCategory
+        app:title="@string/cat_appearance"
+        app:icon="@drawable/ic_cat_appearance">
 
         <SeekBarPreference
             app:key="text_size_sp"
@@ -89,7 +105,8 @@
             app:min="5"
             android:max="14"
             app:showSeekBarValue="true"
-            app:title="@string/pref_text_size_title" />
+            app:title="@string/pref_text_size_title"
+            app:icon="@drawable/ic_pref_format_size" />
 
         <ListPreference
             app:key="color_mode"
@@ -97,50 +114,52 @@
             app:title="@string/pref_color_mode_title"
             app:entries="@array/color_mode_entries"
             app:entryValues="@array/color_mode_values"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            app:icon="@drawable/ic_pref_palette" />
 
         <EditTextPreference
             app:key="custom_color"
             app:defaultValue="#FFFFFF"
             app:title="@string/pref_custom_color_title"
-            app:summary="@string/pref_custom_color_summary" />
+            app:summary="@string/pref_custom_color_summary"
+            app:icon="@drawable/ic_pref_arrow_downward" />
 
         <EditTextPreference
             app:key="custom_color_ul"
             app:defaultValue="#FFFFFF"
             app:title="@string/pref_custom_color_ul_title"
-            app:summary="@string/pref_custom_color_ul_summary" />
+            app:summary="@string/pref_custom_color_ul_summary"
+            app:icon="@drawable/ic_pref_arrow_upward" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cat_surfaces">
+    <PreferenceCategory
+        app:title="@string/cat_surfaces"
+        app:icon="@drawable/ic_cat_surfaces">
 
         <SwitchPreferenceCompat
             app:key="show_on_shade"
             app:defaultValue="false"
             app:title="@string/pref_show_shade_title"
-            app:summary="@string/pref_show_shade_summary" />
+            app:summary="@string/pref_show_shade_summary"
+            app:icon="@drawable/ic_pref_notifications" />
 
         <SwitchPreferenceCompat
             app:key="show_on_lockscreen"
             app:defaultValue="false"
             app:title="@string/pref_show_lockscreen_title"
-            app:summary="@string/pref_show_lockscreen_summary" />
+            app:summary="@string/pref_show_lockscreen_summary"
+            app:icon="@drawable/ic_pref_lock" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cat_about">
+    <PreferenceCategory
+        app:title="@string/cat_about"
+        app:icon="@drawable/ic_cat_about">
 
-        <Preference
-            app:key="check_update"
-            app:persistent="false"
-            app:title="@string/pref_check_update_title" />
-
-        <Preference
-            app:key="view_source"
-            app:persistent="false"
-            app:title="@string/pref_source_repo_title"
-            app:summary="github.com/kadirjohn/kspeed-network-lsposed" />
+        <io.github.kadirjohn.kspeed.AboutCardPreference
+            app:key="about_card"
+            app:persistent="false" />
 
     </PreferenceCategory>
 
