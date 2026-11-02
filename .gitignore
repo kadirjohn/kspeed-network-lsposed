@@ -20,8 +20,3 @@ local.properties
 /release.jks
 *.jks
 *.keystore
-
-# Local agent handoff notes and device diagnostics
-/private-notes/
-/docs/*HANDOFF*
-/docs/evidence/

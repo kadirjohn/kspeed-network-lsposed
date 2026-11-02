@@ -106,10 +106,14 @@ Keep the signing key safe; an APK signed by another key cannot update an existin
 - `ConfigProvider` exposes only indicator settings over Binder; settings changes notify its observer.
 - The app's update checker and source links target **this fork**, not the upstream release feed.
 
-## Development status
+## Investigation and next work
 
-The settings screen still uses AppCompat preferences. Proper system-bar insets, a full Material 3 /
-Monet redesign and a native adaptive/monochrome launcher icon are not included in this placement fix.
+Remaining work is limited to KSpeed: settings system-bar insets, Material 3 / Monet,
+adaptive/monochrome launcher icons and validation, while preserving all settings.
+
+The settings screen still uses AppCompat preferences. A full Material 3 redesign and a native
+adaptive/monochrome launcher icon without the current light outer plate are not included in this
+placement fix.
 
 ## License and attribution
 
