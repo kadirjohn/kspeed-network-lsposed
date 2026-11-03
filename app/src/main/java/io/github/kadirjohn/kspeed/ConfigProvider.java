@@ -34,6 +34,14 @@ public class ConfigProvider extends ContentProvider {
     @Nullable
     @Override
     public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
+        if (LSPosedStatus.METHOD_HELLO.equals(method)) {
+            // SystemUI-side hook check-in: proves the module is enabled and running.
+            Context c = getContext();
+            if (c != null) {
+                LSPosedStatus.recordHello(c, arg);
+            }
+            return Bundle.EMPTY;
+        }
         if (!METHOD_GET.equals(method)) {
             return null;
         }

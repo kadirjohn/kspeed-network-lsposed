@@ -2,6 +2,30 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- Setup card: LSPosed activation status + SystemUI restart. First thing the user sees. -->
+    <PreferenceCategory
+        android:key="cat_setup"
+        app:title="@string/cat_setup"
+        app:icon="@drawable/ic_cat_general"
+        app:layout="@layout/preference_category_m3">
+
+        <Preference
+            app:key="lsposed_status"
+            app:persistent="false"
+            app:selectable="false"
+            app:title="@string/pref_lsposed_status_title"
+            app:summary="@string/status_no_hook"
+            app:icon="@drawable/ic_pref_system_update" />
+
+        <Preference
+            app:key="restart_systemui"
+            app:persistent="false"
+            app:title="@string/pref_restart_systemui_title"
+            app:summary="@string/pref_restart_systemui_summary"
+            app:icon="@drawable/ic_pref_speed" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory
         android:key="cat_general"
         app:title="@string/cat_general"

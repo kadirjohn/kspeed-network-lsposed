@@ -119,7 +119,112 @@ public class StatusBarHook {
         try { XposedHelpers.findAndHookMethod(sic, "onFinishInflate", ensure); } catch (Throwable ignored) {}
         try { XposedHelpers.findAndHookMethod(sic, "onMeasure", int.class, int.class, ensure); } catch (Throwable ignored) {}
 
+        // ROM-independent catch-all: on some ROMs (measured on a Pixel A17 ROM) the main
+        // bar's StatusIconContainer inflates and lays out before our hooks are installed,
+        // and onMeasure never fires again on that static tree, so the method hooks alone
+        // never reach it. Hooking View.onAttachedToWindow globally lets us notice EVERY
+        // attach on the status-bar window and walk the freshly attached subtree for a
+        // statusIcons container — covering trees that finished inflating before install.
+        try {
+            XposedHelpers.findAndHookMethod(View.class, "onAttachedToWindow",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            try {
+                                View attached = (View) param.thisObject;
+                                ViewParent vp = attached.getParent();
+                                if (!(vp instanceof View)) {
+                                    // Only window roots (decor attaches under non-View parents)
+                                    // trigger a full sweep; child attaches are too frequent.
+                                    sweepForStatusIcons(attached);
+                                }
+                            } catch (Throwable ignored) {
+                            }
+                        }
+                    });
+            XposedBridge.log(Constants.LOG_TAG + " attach sweep hook installed");
+        } catch (Throwable t) {
+            XposedBridge.log(Constants.LOG_TAG + " attach sweep unavailable: " + t);
+        }
+
         XposedBridge.log(Constants.LOG_TAG + " hook installed on StatusIconContainer");
+
+        // Trees that attached BEFORE install are only reachable through WindowManagerGlobal.
+        // Schedule one deferred sweep (main thread) and retry briefly: at install time the
+        // status bar window may not exist yet; a few short retries cover both orders.
+        try {
+            Class<?> wmg = XposedHelpers.findClass("android.view.WindowManagerGlobal", cl);
+            final Object global = XposedHelpers.callStaticMethod(wmg, "getInstance");
+            final android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+            final int[] attempts = {0};
+            Runnable sweep = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        @SuppressWarnings("unchecked")
+                        java.util.ArrayList<View> roots = new ArrayList<>(
+                                (java.util.Collection<View>) XposedHelpers.getObjectField(global, "mViews"));
+                        boolean found = false;
+                        for (View root : roots) {
+                            if (root == null) {
+                                continue;
+                            }
+                            View hit = findStatusIcons(root, 0);
+                            if (hit != null) {
+                                onStatusIcons(hit);
+                                found = true;
+                            }
+                        }
+                        attempts[0]++;
+                        if (!found && attempts[0] < 12) {
+                            h.postDelayed(this, 1000L);
+                        }
+                    } catch (Throwable t) {
+                        XposedBridge.log(Constants.LOG_TAG + " root sweep failed: " + t);
+                    }
+                }
+            };
+            h.postDelayed(sweep, 800L);
+            XposedBridge.log(Constants.LOG_TAG + " root sweep scheduled");
+        } catch (Throwable t) {
+            XposedBridge.log(Constants.LOG_TAG + " root sweep unavailable: " + t);
+        }
+    }
+
+    /**
+     * Depth-limited search of the given subtree for a StatusIconContainer that is not yet
+     * served, then routes it through the normal insert path. Called on window-root attaches
+     * so trees that inflated before install are still found.
+     */
+    private static void sweepForStatusIcons(View root) {
+        View found = findStatusIcons(root, 0);
+        if (found != null) {
+            onStatusIcons(found);
+        }
+    }
+
+    private static View findStatusIcons(View v, int depth) {
+        if (depth > 40 || v == null) {
+            return null;
+        }
+        if ("com.android.systemui.statusbar.phone.StatusIconContainer"
+                .equals(v.getClass().getName())) {
+            return v;
+        }
+        if (v instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) v;
+            // Skip our own indicator to avoid self-recursion.
+            if (NetSpeedView.VIEW_TAG.equals(vg.getTag())) {
+                return null;
+            }
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                View hit = findStatusIcons(vg.getChildAt(i), depth + 1);
+                if (hit != null) {
+                    return hit;
+                }
+            }
+        }
+        return null;
     }
 
     private static void onStatusIcons(View statusIcons) {
@@ -173,6 +278,9 @@ public class StatusBarHook {
         view.setLayoutParams(lp);
         parent.addView(view, idx);
         XposedBridge.log(Constants.LOG_TAG + " inserted on '" + surface + "' at index " + idx);
+        // Beacon at insert time: proves module activation to the setup card immediately,
+        // independent of attach/visibility timing on any ROM surface.
+        view.sendHello();
     }
 
     private static boolean hasOurChild(ViewGroup parent) {
@@ -184,10 +292,27 @@ public class StatusBarHook {
         return false;
     }
 
-    /** Identify which status-bar surface this statusIcons belongs to, by ancestor resource ids. */
+    /**
+     * Identify which status-bar surface this statusIcons belongs to, by ancestor view types
+     * and resource ids. Order matters: on some ROMs (measured on a Pixel A17 ROM whose
+     * collapsed bar reuses the keyguard layout family) an ancestor id contains "keyguard"
+     * even on the MAIN bar, which previously misclassified the collapsed bar as the lock
+     * screen and hid it via show_on_lockscreen=false. The root ancestor's TYPE
+     * disambiguates: PhoneStatusBarView roots the collapsed bar; a KeyguardStatusBarView
+     * with no PhoneStatusBarView above it is the lock screen's own bar.
+     */
     static String detectSurface(View v) {
         View cur = v;
+        boolean sawKeyguardBar = false;
         for (int depth = 0; depth < 24 && cur != null; depth++) {
+            String cls = cur.getClass().getName();
+            if (cls.endsWith("PhoneStatusBarView")) {
+                // Deterministic: this ancestor IS the collapsed status bar.
+                return NetSpeedView.SURFACE_COLLAPSED;
+            }
+            if (cls.endsWith("KeyguardStatusBarView")) {
+                sawKeyguardBar = true;
+            }
             int id = cur.getId();
             if (id != View.NO_ID) {
                 String name = null;
@@ -196,9 +321,6 @@ public class StatusBarHook {
                 } catch (Throwable ignored) {
                 }
                 if (name != null) {
-                    if (name.contains("keyguard")) {
-                        return NetSpeedView.SURFACE_KEYGUARD;
-                    }
                     if (name.equals("split_shade_status_bar") || name.contains("shade_header")) {
                         return NetSpeedView.SURFACE_SHADE;
                     }
@@ -208,7 +330,17 @@ public class StatusBarHook {
                 }
             }
             ViewParent p = cur.getParent();
-            cur = (p instanceof View) ? (View) p : null;
+            if (p instanceof View) {
+                cur = (View) p;
+            } else {
+                cur = null;
+            }
+        }
+        // A KeyguardStatusBarView root with no PhoneStatusBarView above it: the lock
+        // screen's own bar. A bare "keyguard" substring in some ancestor id is NOT enough
+        // on ROMs that reuse the keyguard layout family for the main bar.
+        if (sawKeyguardBar) {
+            return NetSpeedView.SURFACE_KEYGUARD;
         }
         return null;
     }

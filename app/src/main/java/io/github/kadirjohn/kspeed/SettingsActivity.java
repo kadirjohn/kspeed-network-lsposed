@@ -318,6 +318,21 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
             Context ctx = getContext();
 
+            // Setup card: live LSPosed activation status.
+            Preference lsposedStatus = findPreference("lsposed_status");
+            if (lsposedStatus != null && ctx != null) {
+                lsposedStatus.setSummary(LSPosedStatus.describeStatus(ctx));
+            }
+
+            // Setup card: restart SystemUI so module/setting changes apply immediately.
+            Preference restart = findPreference("restart_systemui");
+            if (restart != null) {
+                restart.setOnPreferenceClickListener(p -> {
+                    confirmRestartSystemUI();
+                    return true;
+                });
+            }
+
             AboutCardPreference aboutCard = findPreference("about_card");
             if (aboutCard != null) {
                 aboutCard.setCallback(new AboutCardPreference.Callback() {
@@ -489,6 +504,85 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
             notifyHook();
             maybeAutoCheck();
             updateDependencies();
+            refreshLsposedStatus();
+        }
+
+        /** Refresh the setup card's activation line (the hook may have checked in meanwhile). */
+        private void refreshLsposedStatus() {
+            Preference lsposedStatus = findPreference("lsposed_status");
+            Context ctx = getContext();
+            if (lsposedStatus != null && ctx != null) {
+                lsposedStatus.setSummary(LSPosedStatus.describeStatus(ctx));
+            }
+        }
+
+        /**
+         * Asks the user once, then kills SystemUI via shell (no root: the module's own app
+         * cannot kill another process, but on devices where the user runs adb/root the
+         * su path works; otherwise falls back to instructions). Runs on a background
+         * thread and toasts the outcome.
+         */
+        private void confirmRestartSystemUI() {
+            Context ctx = getContext();
+            if (ctx == null || getActivity() == null) {
+                return;
+            }
+            new MaterialAlertDialogBuilder(ctx)
+                    .setTitle(R.string.restart_systemui_confirm_title)
+                    .setMessage(R.string.restart_systemui_confirm_msg)
+                    .setPositiveButton(R.string.pref_restart_systemui_title, (d, w) ->
+                            restartSystemUI())
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void restartSystemUI() {
+            final Context ctx = getContext();
+            if (ctx == null) {
+                return;
+            }
+            final android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+            new Thread(() -> {
+                String error = null;
+                Process p = null;
+                try {
+                    // Argument form verified against KernelSU on-device: `su -c <cmd>` works
+                    // from the app uid when the manager has granted root to this app.
+                    // pkill -f matches the full process name from /proc/<pid>/cmdline, which
+                    // killall misses in the app's su context (comm is truncated to 15 chars
+                    // and killall reported "No such process" there, while working from adb).
+                    p = Runtime.getRuntime().exec(new String[]{"su", "-c",
+                            "pkill -f com.android.systemui || kill $(pidof com.android.systemui)"});
+                    int code = p.waitFor();
+                    if (code != 0) {
+                        error = "su exit " + code;
+                    }
+                } catch (Throwable t) {
+                    error = t.getClass().getSimpleName() + ": " + t.getMessage();
+                } finally {
+                    if (p != null) {
+                        p.destroy();
+                    }
+                }
+                final String err = error;
+                h.post(() -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    if (err == null) {
+                        Toast.makeText(getContext(),
+                                R.string.restart_systemui_done, Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Show the concrete failure so the user can tell "no root grant" from
+                        // "su missing" without connecting adb.
+                        Toast.makeText(getContext(),
+                                getString(R.string.restart_systemui_failed) + " (" + err + ")",
+                                Toast.LENGTH_LONG).show();
+                    }
+                    // Status line will refresh on next resume; SystemUI reattaches the hook.
+                    refreshLsposedStatus();
+                });
+            }, "kspeed-sysui-restart").start();
         }
 
         @Override

@@ -16,6 +16,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
+
+import de.robv.android.xposed.XposedBridge;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -117,6 +119,10 @@ public class NetSpeedView extends LinearLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        // Beacon first: proves module activation to the setup card even on surfaces whose
+        // per-surface setting keeps this view GONE (e.g. lock screen off) — attach order and
+        // visibility must not gate the activation signal.
+        sendHello();
         registerObserver();
         refreshConfig();
         seedBaseline();
@@ -177,6 +183,43 @@ public class NetSpeedView extends LinearLayout {
         try {
             getContext().getContentResolver().registerContentObserver(ConfigProvider.URI, true, observer);
         } catch (Throwable ignored) {
+        }
+    }
+
+    /**
+     * One check-in per attach: proves to the settings app that this module is enabled in
+     * LSPosed with the SystemUI scope (the settings app cannot detect this any other way —
+     * its own process is not hooked). Runs on the IO executor; failures are ignored.
+     */
+    void sendHello() {
+        final Context ctx = getContext();
+        if (ctx == null) {
+            return;
+        }
+        // Try immediately on the calling thread first: attach-time binder call is cheap and
+        // this is the setup card's only activation signal. If it throws, retry on the IO
+        // executor so a transient provider unavailability does not lose the beacon.
+        try {
+            ctx.getContentResolver().call(ConfigProvider.URI,
+                    LSPosedStatus.METHOD_HELLO, surface, null);
+            XposedBridge.log(Constants.LOG_TAG + " hello sent (sync) for surface=" + surface);
+        } catch (Throwable syncError) {
+            XposedBridge.log(Constants.LOG_TAG + " hello sync failed surface=" + surface
+                    + " (" + syncError.getClass().getSimpleName() + "); retrying on IO");
+            IO.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ctx.getContentResolver().call(ConfigProvider.URI,
+                                LSPosedStatus.METHOD_HELLO, surface, null);
+                        XposedBridge.log(Constants.LOG_TAG + " hello sent (io) for surface=" + surface);
+                    } catch (Throwable t) {
+                        // Persistent: this beacon is the setup card's only activation signal.
+                        XposedBridge.log(Constants.LOG_TAG + " hello failed surface=" + surface
+                                + ": " + t.getClass().getSimpleName() + ": " + t.getMessage());
+                    }
+                }
+            });
         }
     }
 
@@ -291,8 +334,15 @@ public class NetSpeedView extends LinearLayout {
     private void renderEntry(TextView tv, ArrowDrawable icon, double bps, int color, int iconSz,
                              String unitMode, boolean showUnit, boolean dimZero) {
         tv.setTextColor(color);
+        // Readability shadow: draw a soft dark-gray shadow only when a light text color sits
+        // on a light status bar (e.g. yellow custom color on a white bar). Dark bars — or
+        // dark colors on light bars — stay clean and shadowless.
+        boolean needShadow = isStatusBarLight() && isLightColor(color);
+        float radius = dp2(getContext(), 1f);
+        setTextViewShadowLayer(tv, needShadow, radius);
         if (icon != null) {
             int alpha = (dimZero && bps <= 0.0) ? DIM_ALPHA : 255;
+            icon.setShadowEnabled(needShadow);
             icon.setBounds(0, 0, iconSz, iconSz);
             icon.setTint(color, alpha);
             tv.setCompoundDrawables(icon, null, null, null);
@@ -301,6 +351,19 @@ public class NetSpeedView extends LinearLayout {
         }
         tv.setText(format(bps, unitMode, showUnit));
         tv.setVisibility(VISIBLE);
+    }
+
+    /** Applies or clears the text shadow without leaving a stale layer when disabled. */
+    private static void setTextViewShadowLayer(TextView tv, boolean enabled, float radius) {
+        if (enabled) {
+            tv.setShadowLayer(radius, radius * 0.6f, radius * 0.6f, 0x42000000);
+        } else {
+            tv.setShadowLayer(0f, 0f, 0f, 0x00000000);
+        }
+    }
+
+    private static float dp2(Context c, float d) {
+        return d * c.getResources().getDisplayMetrics().density;
     }
 
     private boolean surfaceEnabled() {
@@ -314,6 +377,31 @@ public class NetSpeedView extends LinearLayout {
     }
 
     // ---- color / tint ----
+
+    /**
+     * True when the indicator sits on a LIGHT status bar, derived from the mirrored clock
+     * color: SystemUI renders the clock dark on light bars (and vice versa), so a dark
+     * clock means a light bar. Conservative default: no shadow (assumed dark bar).
+     */
+    private boolean isStatusBarLight() {
+        Integer clock = mirrorClockColor();
+        if (clock == null) {
+            return false;
+        }
+        return luminance(clock) < 0.5f;
+    }
+
+    private static float luminance(int color) {
+        double r = Color.red(color) / 255.0;
+        double g = Color.green(color) / 255.0;
+        double b = Color.blue(color) / 255.0;
+        return (float) (0.2126 * r + 0.7152 * g + 0.0722 * b);
+    }
+
+    /** True when this color would be hard to read on the given bar lightness. */
+    private static boolean isLightColor(int color) {
+        return luminance(color) >= 0.5f;
+    }
 
     private int resolveColor(boolean upload) {
         if ("custom".equals(getString(Constants.KEY_COLOR_MODE, Constants.DEF_COLOR_MODE))) {

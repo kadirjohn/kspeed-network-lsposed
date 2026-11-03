@@ -9,6 +9,19 @@
     <string name="preview_subtitle">Simulated traffic (↑ 1.2 MB/s, ↓ 340 KB/s) reflecting current display settings</string>
     <string name="preview_disabled_hint">Indicator is turned off</string>
 
+    <!-- Setup card: LSPosed activation status + SystemUI restart -->
+    <string name="cat_setup">Setup</string>
+    <string name="pref_lsposed_status_title">LSPosed status</string>
+    <string name="status_no_hook">Module not detected in SystemUI. Enable KSpeed Network in LSPosed with the System UI scope, then restart SystemUI.</string>
+    <string name="status_hook_stale">Module was active earlier, but SystemUI has not checked in recently. If the indicator is missing, restart SystemUI.</string>
+    <string name="status_hook_ok">Module active — hook is running in SystemUI.</string>
+    <string name="pref_restart_systemui_title">Restart SystemUI</string>
+    <string name="pref_restart_systemui_summary">Apply module changes immediately</string>
+    <string name="restart_systemui_confirm_title">Restart SystemUI?</string>
+    <string name="restart_systemui_confirm_msg">The status bar and Quick Settings will reload for a moment. The screen will not turn off.</string>
+    <string name="restart_systemui_failed">Could not restart SystemUI automatically. Reboot the phone or run:\nadb shell su -c \'killall com.android.systemui\'</string>
+    <string name="restart_systemui_done">SystemUI restarting…</string>
+
     <string name="cat_general">General</string>
     <string name="cat_display">Display</string>
     <string name="cat_appearance">Appearance</string>
