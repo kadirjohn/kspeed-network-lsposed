@@ -53,6 +53,7 @@ All existing preference keys, types, defaults and options are retained:
 - A live status-bar preview that fades out as the settings header collapses.
 - Optional main-status-bar cellular-icon hiding, preserving Quick Settings and lock-screen icons.
 - Optional removal of spacing left by icons collapsed by Duo or other modules.
+- Optional compact outlined AOSP VPN key in the main status bar, retaining QS and warning variants.
 
 On Neoteric Android 17, cellular signal, VoLTE and VoWiFi share a group: hiding cellular icons hides
 that group, rather than only VoWiFi. These new icon controls default to off and do not disable calls.
@@ -64,6 +65,16 @@ updated directly with a release-signed APK. Export settings before switching sig
 
 The indicator keeps its original two-line appearance, but each arrow now stays next to its own value.
 The previous 52 dp minimum width and full-width, end-aligned text rows have been removed.
+
+The compact VPN key uses public Android Open Source Project artwork (Android 15), not proprietary
+Pixel artwork. Its license and original source are recorded in [third_party/AOSP-VPN-NOTICE.md](third_party/AOSP-VPN-NOTICE.md).
+On Neoteric, normal system-icon height normalization would enlarge the replacement again; the opt-in
+style also applies a per-icon scale reduction. Disabling it reloads the stock icon. Branded VPN and
+no-internet warning resources are intentionally left alone.
+
+The launcher foreground and monochrome layers use the same mark at the same size. A translation
+centers its enclosing circle within the adaptive mask, retaining the complete K and arrow in a
+circular mask as well as a squircle. Native raster tests check both layers against the circle.
 
 ## VPN and live speed measurement
 

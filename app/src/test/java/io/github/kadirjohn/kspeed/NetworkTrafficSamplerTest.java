@@ -52,6 +52,13 @@ public class NetworkTrafficSamplerTest {
         f.bytes.put("rmnet_data4",new long[]{100,0});
         assertEquals(0,sampler.sample(0,3000)[0],0.001);
     }
+    @Test public void delayedTicksUseActualElapsedTimeRatherThanConfiguredInterval() {
+        Fake f = new Fake(); f.link("wlan0",1,false);
+        NetworkTrafficSampler sampler = new NetworkTrafficSampler(f);
+        sampler.sample(0,1000);
+        f.bytes.put("wlan0",new long[]{3145728,0});
+        assertEquals(2097152,sampler.sample(0,2500)[0],0.001);
+    }
     @Test public void procParserReadsRxAndTxAndSkipsBadRows() throws Exception {
         Map<String,long[]> values=NetworkTrafficSampler.parseCounters(new StringReader(
             "Inter-| Receive | Transmit\n wlan0: 1024 1 0 0 0 0 0 0 2048 1 0 0 0 0 0 0\n tun0: broken row\n"));

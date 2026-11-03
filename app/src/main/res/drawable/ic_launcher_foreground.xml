@@ -11,6 +11,8 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Translation only: center the unchanged mark inside the circular adaptive mask. -->
+    <group android:translateX="3.084783" android:translateY="-3.8">
 
     <!-- Green download arrow (behind the K): shaft above, head below; tip on the K's baseline. -->
     <path
@@ -21,4 +23,5 @@
     <path
         android:fillColor="#FFFFFFFF"
         android:pathData="M26,34 h10.2 v20.4 l20.4,-20.4 h13.6 l-23.8,23.8 l23.8,23.8 h-13.6 l-20.4,-20.4 v20.4 h-10.2 Z" />
+    </group>
 </vector>

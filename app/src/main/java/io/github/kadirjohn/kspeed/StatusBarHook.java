@@ -35,6 +35,7 @@ public class StatusBarHook {
     private static final WeakHashMap<ViewGroup, IconSlotPolicy> policies = new WeakHashMap<>();
 
     static void updateIconConfig(Bundle config) {
+        VpnIconStyle.updateConfig(config);
         boolean hide = config.getBoolean(KEY_HIDE_CELLULAR, false);
         boolean compact = config.getBoolean(KEY_COMPACT_HIDDEN, false);
         if (hide == hideCellular && compact == compactHidden) return;
@@ -84,6 +85,7 @@ public class StatusBarHook {
 
     static void install(LoadPackageParam lpparam) {
         ClassLoader cl = lpparam.classLoader;
+        VpnIconStyle.install(lpparam);
 
         Class<?> sic = XposedHelpers.findClassIfExists(
                 "com.android.systemui.statusbar.phone.StatusIconContainer", cl);
@@ -183,7 +185,7 @@ public class StatusBarHook {
     }
 
     /** Identify which status-bar surface this statusIcons belongs to, by ancestor resource ids. */
-    private static String detectSurface(View v) {
+    static String detectSurface(View v) {
         View cur = v;
         for (int depth = 0; depth < 24 && cur != null; depth++) {
             int id = cur.getId();

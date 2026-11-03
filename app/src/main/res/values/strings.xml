@@ -90,4 +90,6 @@
     <string name="pref_hide_statusbar_cellular_summary">Includes VoWiFi, VoLTE and signal indicators when grouped by the ROM. Keeps Quick Settings and lock screen icons. Does not turn off Wi-Fi calling.</string>
     <string name="pref_compact_hidden_title">Remove gaps from hidden icons</string>
     <string name="pref_compact_hidden_summary">Reclaims spacing left by icons collapsed by Duo or other modules. Applies only to the status bar; keeps its normal edge padding.</string>
+    <string name="pref_compact_vpn_title">Compact AOSP VPN icon</string>
+    <string name="pref_compact_vpn_summary">Use Android’s outlined key at a smaller size in the status bar. Keeps Quick Settings, branded VPN icons and connection warnings unchanged.</string>
 </resources>

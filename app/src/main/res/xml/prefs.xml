@@ -162,6 +162,13 @@
             app:icon="@drawable/ic_pref_visibility_off" />
 
         <io.github.kadirjohn.kspeed.MaterialSwitchPreference
+            app:key="compact_aosp_vpn_icon"
+            app:defaultValue="false"
+            app:title="@string/pref_compact_vpn_title"
+            app:summary="@string/pref_compact_vpn_summary"
+            app:icon="@drawable/ic_vpn_aosp" />
+
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
             app:key="compact_hidden_status_icons"
             app:defaultValue="false"
             app:title="@string/pref_compact_hidden_title"
