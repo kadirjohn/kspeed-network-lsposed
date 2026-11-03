@@ -65,6 +65,28 @@ updated directly with a release-signed APK. Export settings before switching sig
 The indicator keeps its original two-line appearance, but each arrow now stays next to its own value.
 The previous 52 dp minimum width and full-width, end-aligned text rows have been removed.
 
+## VPN and live speed measurement
+
+KSpeed counts the underlying internet interfaces once. VPN interfaces (such as `tun0`) are excluded,
+even when Android also labels a VPN as Wi-Fi or cellular. Multiple network entries referring to the
+same interface are deduplicated. Wi-Fi/cellular selection follows the same accounting rule.
+
+Values represent network-layer traffic, including protocol/VPN overhead and other applications.
+They need not match a single app's payload speed or Speedtest's averaging window exactly. Combined
+mode adds upload and download; the other modes show their respective directions.
+
+Fresh interface counters are used when readable. Otherwise KSpeed uses Android's per-interface
+counters and samples them no faster than once per second, while the UI may still refresh every 0.5 s.
+This avoids treating a repeated cached reading as zero and dividing a one-second counter increase by
+half a second. The idle threshold is always in KB/s, regardless of the chosen display unit. Network,
+source and counter-backend changes reset the sampling baseline to prevent false spikes.
+
+There is no double-counting toggle. The implementation does not fall back to blanket all-interface
+totals if physical-interface measurement is unavailable. VPN exclusion, deduplication, cached reads,
+source changes and counter resets have regression tests. Device testing confirmed the original 500 ms
+traffic/idle oscillation; the replacement was installed without changing the user's 500 ms refresh or
+50 KB/s idle threshold. Exact parity with Speedtest or all VPN/ROM combinations is not claimed.
+
 ## Duo Status Bar compatibility
 
 Duo's edge-spacing setting can give its ring a **negative start margin**. At the measured size of

@@ -11,7 +11,6 @@ import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.net.TrafficStats;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -60,10 +59,8 @@ public class NetSpeedView extends LinearLayout {
     private Bundle config = new Bundle();
     private ContentObserver observer;
 
-    private long lastRx, lastTx, lastTs;
-    private String lastSource;
+    private final NetworkTrafficSampler trafficSampler;
     private boolean running;
-    private boolean baselineSeeded;
     private View cachedClock;
 
     private final Runnable tick = new Runnable() {
@@ -87,6 +84,7 @@ public class NetSpeedView extends LinearLayout {
     public NetSpeedView(Context c, String surface) {
         super(c);
         this.surface = surface;
+        this.trafficSampler = new NetworkTrafficSampler(c);
         setTag(VIEW_TAG);
         setOrientation(VERTICAL);
         setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
@@ -160,12 +158,8 @@ public class NetSpeedView extends LinearLayout {
     }
 
     private void seedBaseline() {
-        long[] s = sampleBytes(sourceKind(getString(Constants.KEY_SOURCE, Constants.DEF_SOURCE)));
-        lastRx = s[0];
-        lastTx = s[1];
-        lastTs = SystemClock.elapsedRealtime();
-        lastSource = getString(Constants.KEY_SOURCE, Constants.DEF_SOURCE);
-        baselineSeeded = true;
+        trafficSampler.sample(sourceKind(getString(Constants.KEY_SOURCE, Constants.DEF_SOURCE)),
+                SystemClock.elapsedRealtime());
     }
 
     // ---- settings over binder ----
@@ -233,28 +227,9 @@ public class NetSpeedView extends LinearLayout {
 
         String source = getString(Constants.KEY_SOURCE, Constants.DEF_SOURCE);
         long now = SystemClock.elapsedRealtime();
-        long[] s = sampleBytes(sourceKind(source));
-        long rx = s[0];
-        long tx = s[1];
-
-        double rxps;
-        double txps;
-        long dt = now - lastTs;
-        long dRx = rx - lastRx;
-        long dTx = tx - lastTx;
-        boolean sourceChanged = !source.equals(lastSource);
-        if (!baselineSeeded || sourceChanged || dt <= 0 || dRx < 0 || dTx < 0) {
-            rxps = 0;
-            txps = 0;
-        } else {
-            rxps = dRx * 1000.0 / dt;
-            txps = dTx * 1000.0 / dt;
-        }
-        lastRx = rx;
-        lastTx = tx;
-        lastTs = now;
-        lastSource = source;
-        baselineSeeded = true;
+        double[] rates = trafficSampler.sample(sourceKind(source), now);
+        double rxps = rates[0];
+        double txps = rates[1];
 
         String mode = getString(Constants.KEY_MODE, Constants.DEF_MODE);
         String unitMode = getString(Constants.KEY_UNIT, Constants.DEF_UNIT);
@@ -382,60 +357,6 @@ public class NetSpeedView extends LinearLayout {
             return SRC_CELL;
         }
         return SRC_TOTAL;
-    }
-
-    private long[] sampleBytes(int kind) {
-        if (kind == SRC_WIFI || kind == SRC_CELL) {
-            return procSum(kind);
-        }
-        long rx = TrafficStats.getTotalRxBytes();
-        long tx = TrafficStats.getTotalTxBytes();
-        if (rx == TrafficStats.UNSUPPORTED || tx == TrafficStats.UNSUPPORTED) {
-            return procSum(SRC_TOTAL);
-        }
-        return new long[]{rx, tx};
-    }
-
-    /** Sum rx/tx bytes from /proc/net/dev for interfaces matching the requested class. */
-    private static long[] procSum(int kind) {
-        long rx = 0;
-        long tx = 0;
-        try (java.io.BufferedReader br = new java.io.BufferedReader(
-                new java.io.FileReader("/proc/net/dev"))) {
-            String l;
-            while ((l = br.readLine()) != null) {
-                int colon = l.indexOf(':');
-                if (colon < 0) {
-                    continue;
-                }
-                String iface = l.substring(0, colon).trim();
-                if (!ifaceMatches(iface, kind)) {
-                    continue;
-                }
-                String[] f = l.substring(colon + 1).trim().split("\\s+");
-                if (f.length > 8) {
-                    rx += Long.parseLong(f[0]);
-                    tx += Long.parseLong(f[8]);
-                }
-            }
-        } catch (Throwable ignored) {
-        }
-        return new long[]{rx, tx};
-    }
-
-    private static boolean ifaceMatches(String iface, int kind) {
-        switch (kind) {
-            case SRC_WIFI:
-                return iface.startsWith("wlan");
-            case SRC_CELL:
-                return iface.startsWith("rmnet") || iface.startsWith("ccmni") || iface.startsWith("pdp");
-            case SRC_TOTAL:
-            default:
-                // physical radios only — exclude loopback, tunnels/VPN and other virtual ifaces
-                return iface.startsWith("wlan") || iface.startsWith("rmnet")
-                        || iface.startsWith("ccmni") || iface.startsWith("eth")
-                        || iface.startsWith("usb") || iface.startsWith("rndis");
-        }
     }
 
     // ---- formatting ----
