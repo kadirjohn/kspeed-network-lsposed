@@ -90,6 +90,12 @@ public final class StatusPreviewController {
 
         line1.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp);
         line2.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp);
+        // Bold text mirrors the real indicator: independent of size.
+        boolean bold = sp.getBoolean(Constants.KEY_BOLD_TEXT, Constants.DEF_BOLD_TEXT);
+        android.graphics.Typeface typeface = bold
+                ? android.graphics.Typeface.DEFAULT_BOLD : android.graphics.Typeface.DEFAULT;
+        line1.setTypeface(typeface);
+        line2.setTypeface(typeface);
         int iconSz = Math.round(line1.getTextSize() * 0.82f);
 
         switch (mode != null ? mode : Constants.DEF_MODE) {

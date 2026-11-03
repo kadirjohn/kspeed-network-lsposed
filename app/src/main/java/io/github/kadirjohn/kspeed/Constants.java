@@ -29,6 +29,7 @@ public final class Constants {
     public static final String KEY_HIDE_IDLE      = "hide_idle";
     public static final String KEY_IDLE_THRESHOLD = "idle_threshold_kb"; // int, KB/s
     public static final String KEY_TEXT_SIZE      = "text_size_sp";    // int, sp
+    public static final String KEY_BOLD_TEXT      = "bold_text";       // bool — independent of size
     public static final String KEY_COLOR_MODE     = "color_mode";      // auto | custom
     public static final String KEY_CUSTOM_COLOR   = "custom_color";    // #RRGGBB — download
     public static final String KEY_CUSTOM_COLOR_UL = "custom_color_ul"; // #RRGGBB — upload
@@ -48,6 +49,7 @@ public final class Constants {
     public static final boolean DEF_HIDE_IDLE      = false;
     public static final int     DEF_IDLE_THRESHOLD = 1;
     public static final int     DEF_TEXT_SIZE      = 8;
+    public static final boolean DEF_BOLD_TEXT      = false;
     public static final String  DEF_COLOR_MODE     = "auto";
     public static final String  DEF_CUSTOM_COLOR   = "#FFFFFF";
     public static final String  DEF_CUSTOM_COLOR_UL = "#FFFFFF";

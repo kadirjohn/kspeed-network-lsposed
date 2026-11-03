@@ -291,6 +291,12 @@ public class NetSpeedView extends LinearLayout {
         line2.setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp);
         int iconSz = Math.round(line1.getTextSize() * 0.82f);
 
+        // Bold text: independent of size — thicker glyphs for small/low-DPI screens.
+        android.graphics.Typeface typeface = getBool(Constants.KEY_BOLD_TEXT, Constants.DEF_BOLD_TEXT)
+                ? android.graphics.Typeface.DEFAULT_BOLD : android.graphics.Typeface.DEFAULT;
+        line1.setTypeface(typeface);
+        line2.setTypeface(typeface);
+
         int dlColor = resolveColor(false);
         int ulColor = resolveColor(true);
         boolean dimZero = getBool(Constants.KEY_DIM_ZERO, Constants.DEF_DIM_ZERO);
@@ -356,7 +362,7 @@ public class NetSpeedView extends LinearLayout {
     /** Applies or clears the text shadow without leaving a stale layer when disabled. */
     private static void setTextViewShadowLayer(TextView tv, boolean enabled, float radius) {
         if (enabled) {
-            tv.setShadowLayer(radius, radius * 0.6f, radius * 0.6f, 0x42000000);
+            tv.setShadowLayer(radius, radius * 0.6f, radius * 0.6f, 0x80000000);
         } else {
             tv.setShadowLayer(0f, 0f, 0f, 0x00000000);
         }

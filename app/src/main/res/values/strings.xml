@@ -45,6 +45,8 @@
     <string name="pref_idle_threshold_title">Idle threshold (KB/s)</string>
 
     <string name="pref_text_size_title">Text size (sp)</string>
+    <string name="pref_bold_text_title">Bold text</string>
+    <string name="pref_bold_text_summary">Thicker strokes for better readability on small or low-resolution screens; independent of text size</string>
 
     <string name="pref_color_mode_title">Color</string>
     <string name="pref_amoled_black_title">AMOLED black</string>

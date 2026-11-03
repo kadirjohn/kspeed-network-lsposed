@@ -32,7 +32,9 @@ public final class ArrowDrawable extends Drawable {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);
         shadowPaint.setStyle(Paint.Style.FILL);
-        shadowPaint.setColor(0x42000000); // translucent dark gray
+        // Pronounced shadow (~50% opacity): keeps light custom colors (yellow) readable on
+        // light status bars, especially on small 6.3" screens; never drawn on dark bars.
+        shadowPaint.setColor(0x80000000);
     }
 
     /** Enables/disables the drop shadow (e.g. only on light status bars). */

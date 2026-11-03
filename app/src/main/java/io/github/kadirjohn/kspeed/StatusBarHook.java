@@ -165,7 +165,11 @@ public class StatusBarHook {
                         @SuppressWarnings("unchecked")
                         java.util.ArrayList<View> roots = new ArrayList<>(
                                 (java.util.Collection<View>) XposedHelpers.getObjectField(global, "mViews"));
-                        boolean found = false;
+                        // The sweep's job is the COLLAPSED main bar — its window registers in
+                        // mViews LATE on some ROMs. Shade/keyguard inserts usually arrive via
+                        // the attach sweep already, so "any insert found" must NOT stop the
+                        // retries; only a collapsed insert completes the mission.
+                        boolean collapsedServed = false;
                         for (View root : roots) {
                             if (root == null) {
                                 continue;
@@ -173,13 +177,18 @@ public class StatusBarHook {
                             java.util.List<View> hits = new ArrayList<>();
                             collectStatusIcons(root, 0, hits);
                             for (View hit : hits) {
+                                if (NetSpeedView.SURFACE_COLLAPSED.equals(detectSurface(hit))) {
+                                    collapsedServed = true;
+                                }
                                 onStatusIcons(hit);
-                                found = true;
                             }
                         }
                         attempts[0]++;
-                        if (!found && attempts[0] < 12) {
+                        if (!collapsedServed && attempts[0] < 30) {
                             h.postDelayed(this, 1000L);
+                        } else if (collapsedServed) {
+                            XposedBridge.log(Constants.LOG_TAG
+                                    + " root sweep: collapsed served after " + attempts[0] + " attempt(s)");
                         }
                     } catch (Throwable t) {
                         XposedBridge.log(Constants.LOG_TAG + " root sweep failed: " + t);
