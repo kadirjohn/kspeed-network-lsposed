@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -72,8 +73,10 @@ public class NetSpeedView extends LinearLayout {
             try {
                 interval = intervalMs();
                 update();
-                spacing.update();
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                if (Log.isLoggable("KSpeed", Log.DEBUG)) {
+                    Log.d("KSpeed", "surface=" + surface + " update failed", t);
+                }
             }
             if (running) {
                 handler.postDelayed(this, interval);
@@ -223,7 +226,7 @@ public class NetSpeedView extends LinearLayout {
 
     private void update() {
         if (!getBool(Constants.KEY_ENABLED, Constants.DEF_ENABLED) || !surfaceEnabled()) {
-            setVisibility(GONE);
+            setIndicatorVisibility(GONE, "disabled/surface");
             return;
         }
 
@@ -260,12 +263,10 @@ public class NetSpeedView extends LinearLayout {
             double thresholdBps = getInt(Constants.KEY_IDLE_THRESHOLD, Constants.DEF_IDLE_THRESHOLD) * 1024.0;
             double activity = "down".equals(mode) ? rxps : (rxps + txps);
             if (activity < thresholdBps) {
-                setVisibility(GONE);
+                setIndicatorVisibility(GONE, "idle");
                 return;
             }
         }
-        setVisibility(VISIBLE);
-
         float sizeSp = getInt(Constants.KEY_TEXT_SIZE, Constants.DEF_TEXT_SIZE);
         line1.setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp);
         line2.setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp);
@@ -295,6 +296,19 @@ public class NetSpeedView extends LinearLayout {
                     renderEntry(line2, upArrow, txps, ulColor, iconSz, unitMode, showUnit, dimZero);
                 }
                 break;
+        }
+        // Publish visibility after the row content is ready. Spacing is resolved
+        // after layout, before drawing, rather than against the previous hidden frame.
+        setIndicatorVisibility(VISIBLE, "traffic");
+    }
+
+    private void setIndicatorVisibility(int visibility, String reason) {
+        boolean changed = getVisibility() != visibility;
+        setVisibility(visibility);
+        if (changed && Log.isLoggable("KSpeed", Log.DEBUG)) {
+            Log.d("KSpeed", "surface=" + surface + " visibility=" + visibility
+                    + " reason=" + reason + " idleThresholdKBps="
+                    + getInt(Constants.KEY_IDLE_THRESHOLD, Constants.DEF_IDLE_THRESHOLD));
         }
     }
 

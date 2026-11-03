@@ -113,6 +113,60 @@ public class StatusBarSpacingTest {
         assertTrue(duo.getX() + duo.getWidth() <= speed.getLeft());
     }
 
+    @Test public void reappearingIndicatorDoesNotMeasureStaleHiddenBounds() {
+        for (boolean rtl : new boolean[]{false, true}) {
+            LinearLayout strip = strip(rtl);
+            View speed = child(strip, 80, 0);
+            child(strip, 50, 0);
+            child(strip, 70, -16);
+            StatusBarSpacing spacing = new StatusBarSpacing(speed);
+            layout(strip);
+            speed.setVisibility(View.GONE);
+            layout(strip);
+
+            // The speed view retains its old frame, while the icons have moved into
+            // its former slot. The sampler runs before the next layout traversal.
+            speed.setVisibility(View.VISIBLE);
+            spacing.update();
+            assertEquals("Stale hidden coordinates must not create a temporary gap", 0, margin(speed));
+
+            layout(strip);
+            spacing.update();
+            assertEquals(0, margin(speed));
+        }
+    }
+
+    @Test public void preDrawWaitsForSpacingRelayoutAndDetachesCleanly() {
+        for (boolean rtl : new boolean[]{false, true}) {
+            LinearLayout strip = strip(rtl);
+            View speed = child(strip, 80, 0);
+            View duo = child(strip, 70, -16);
+            StatusBarSpacing spacing = new StatusBarSpacing(speed);
+            spacing.onViewAttachedToWindow(speed);
+            layout(strip);
+
+            // A frame using the old margin must not be presented to the user.
+            assertTrue(speed.getViewTreeObserver().dispatchOnPreDraw());
+            assertEquals(16, margin(speed));
+            layout(strip);
+            assertFalse(speed.getViewTreeObserver().dispatchOnPreDraw());
+            assertTrue(rtl ? duo.getX() + duo.getWidth() <= speed.getLeft()
+                    : duo.getX() >= speed.getRight());
+
+            // Translation-only changes are corrected at draw time, too.
+            duo.setTranslationX(rtl ? 9 : -9);
+            assertTrue(speed.getViewTreeObserver().dispatchOnPreDraw());
+            assertEquals(25, margin(speed));
+            layout(strip);
+            assertFalse(speed.getViewTreeObserver().dispatchOnPreDraw());
+
+            spacing.onViewDetachedFromWindow(speed);
+            duo.setTranslationX(rtl ? 20 : -20);
+            assertFalse(speed.getViewTreeObserver().dispatchOnPreDraw());
+            assertEquals(25, margin(speed));
+        }
+    }
+
     @Test public void shortSpeedRowKeepsArrowBesideTextAndRowsEndTogether() {
         NetSpeedView speed = new NetSpeedView(context, NetSpeedView.SURFACE_COLLAPSED);
         TextView shortRow = (TextView) speed.getChildAt(0);
