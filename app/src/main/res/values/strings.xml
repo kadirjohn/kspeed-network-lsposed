@@ -85,4 +85,9 @@
     <string name="import_hint">Paste settings JSON here</string>
     <string name="import_done">Settings imported successfully</string>
     <string name="import_invalid">Invalid settings JSON</string>
+    <string name="cat_status_icons">Status bar icons</string>
+    <string name="pref_hide_statusbar_cellular_title">Hide cellular icons in status bar</string>
+    <string name="pref_hide_statusbar_cellular_summary">Includes VoWiFi, VoLTE and signal indicators when grouped by the ROM. Keeps Quick Settings and lock screen icons. Does not turn off Wi-Fi calling.</string>
+    <string name="pref_compact_hidden_title">Remove gaps from hidden icons</string>
+    <string name="pref_compact_hidden_summary">Reclaims spacing left by icons collapsed by Duo or other modules. Applies only to the status bar; keeps its normal edge padding.</string>
 </resources>

@@ -213,6 +213,7 @@ public class NetSpeedView extends LinearLayout {
                             @Override
                             public void run() {
                                 config = b;
+                                StatusBarHook.updateIconConfig(b);
                             }
                         });
                     }

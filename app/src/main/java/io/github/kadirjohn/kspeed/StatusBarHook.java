@@ -1,10 +1,15 @@
 package io.github.kadirjohn.kspeed;
 
 import android.view.Gravity;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.LinearLayout;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -22,6 +27,60 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
  * surface gets its own reusable view instance that self-hides per the user's per-surface setting.
  */
 public class StatusBarHook {
+    static final String KEY_HIDE_CELLULAR = "hide_statusbar_cellular";
+    static final String KEY_COMPACT_HIDDEN = "compact_hidden_status_icons";
+    private static boolean hideCellular;
+    private static boolean compactHidden;
+    private static boolean warned;
+    private static final WeakHashMap<ViewGroup, IconSlotPolicy> policies = new WeakHashMap<>();
+
+    static void updateIconConfig(Bundle config) {
+        boolean hide = config.getBoolean(KEY_HIDE_CELLULAR, false);
+        boolean compact = config.getBoolean(KEY_COMPACT_HIDDEN, false);
+        if (hide == hideCellular && compact == compactHidden) return;
+        hideCellular = hide;
+        compactHidden = compact;
+        for (ViewGroup container : new ArrayList<>(policies.keySet())) {
+            if (container != null) container.requestLayout();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void applyIconPolicy(ViewGroup container) {
+        // Measured on Neoteric A17: onMeasure AND onLayout consult mIgnoredSlots. It is local
+        // to this container, unlike icon_blacklist. Never apply this policy to shade/keyguard.
+        if (!NetSpeedView.SURFACE_COLLAPSED.equals(detectSurface(container))) return;
+        IconSlotPolicy policy = policies.get(container);
+        if (policy == null) {
+            policy = new IconSlotPolicy();
+            policies.put(container, policy);
+        }
+        if (!hideCellular && !compactHidden && !policy.hasOwned()) return;
+        try {
+            Set<String> ignored = (Set<String>) XposedHelpers.getObjectField(container, "mIgnoredSlots");
+            Set<String> desired = new HashSet<>();
+            if (hideCellular) {
+                desired.add("mobile");
+                desired.add("stacked_mobile");
+            }
+            if (compactHidden) {
+                for (int i = 0; i < container.getChildCount(); i++) {
+                    View child = container.getChildAt(i);
+                    ViewGroup.LayoutParams lp = child.getLayoutParams();
+                    if (child.getVisibility() == View.GONE && lp != null && lp.width == 0 && lp.height == 0) {
+                        Object slot = XposedHelpers.callMethod(child, "getSlot");
+                        if (slot instanceof String) desired.add((String) slot);
+                    }
+                }
+            }
+            policy.sync(ignored, desired);
+        } catch (Throwable t) {
+            if (!warned) {
+                warned = true;
+                XposedBridge.log(Constants.LOG_TAG + " icon policy unavailable: " + t);
+            }
+        }
+    }
 
     static void install(LoadPackageParam lpparam) {
         ClassLoader cl = lpparam.classLoader;
@@ -34,6 +93,17 @@ public class StatusBarHook {
         }
 
         XC_MethodHook ensure = new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) {
+                try {
+                    applyIconPolicy((ViewGroup) param.thisObject);
+                } catch (Throwable t) {
+                    if (!warned) {
+                        warned = true;
+                        XposedBridge.log(Constants.LOG_TAG + " icon policy skipped: " + t);
+                    }
+                }
+            }
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
                 try {

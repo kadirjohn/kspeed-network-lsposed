@@ -149,6 +149,27 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory
+        app:title="@string/cat_status_icons"
+        app:icon="@drawable/ic_cat_display"
+        app:layout="@layout/preference_category_m3">
+
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
+            app:key="hide_statusbar_cellular"
+            app:defaultValue="false"
+            app:title="@string/pref_hide_statusbar_cellular_title"
+            app:summary="@string/pref_hide_statusbar_cellular_summary"
+            app:icon="@drawable/ic_pref_visibility_off" />
+
+        <io.github.kadirjohn.kspeed.MaterialSwitchPreference
+            app:key="compact_hidden_status_icons"
+            app:defaultValue="false"
+            app:title="@string/pref_compact_hidden_title"
+            app:summary="@string/pref_compact_hidden_summary"
+            app:icon="@drawable/ic_pref_straighten" />
+
+    </PreferenceCategory>
+
     <!-- About section: clean card without category outline box -->
     <io.github.kadirjohn.kspeed.AboutCardPreference
         app:key="about_card"
