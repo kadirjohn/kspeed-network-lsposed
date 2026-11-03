@@ -18,8 +18,8 @@ android {
         applicationId 'io.github.kadirjohn.kspeed'
         minSdk 31          // Android 12; runtime support also depends on the ROM's status-icon layout.
         targetSdk 36       // Android 16
-        versionCode 4
-        versionName '1.0.3-dev'
+        versionCode 5
+        versionName '1.0.3'
     }
 
     signingConfigs {
