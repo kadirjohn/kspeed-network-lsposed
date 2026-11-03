@@ -77,7 +77,8 @@ ANDROID_HOME="$HOME/Library/Android/sdk" \
 ```
 
 The tests reproduce overlap with no visible icons, icon appearance/disappearance, translated rings,
-RTL layout, and different upload/download text widths. Runtime code injected into SystemUI uses
+RTL layout, different upload/download text widths, idle reappearance and the first drawn frame.
+Runtime code injected into SystemUI uses
 platform views; AndroidX remains in the separate settings app.
 
 Release signing uses a gitignored `keystore.properties`:
@@ -92,6 +93,19 @@ keyPassword=...
 Then run `./gradlew :app:assembleRelease`. Without a release keystore the release APK is unsigned.
 Keep the signing key safe; an APK signed by another key cannot update an existing installation.
 
+## Diagnostic logging
+
+Debug logging is disabled by default. For a temporary ADB investigation:
+
+```bash
+adb shell setprop log.tag.KSpeed DEBUG
+adb logcat -v time -s KSpeed:D
+```
+
+Messages cover visibility transitions and their idle threshold, actual spacing changes and update
+failures. Successful traffic samples do not generate log lines, and the module writes no log files.
+Disable debug messages afterwards with `adb shell setprop log.tag.KSpeed INFO`.
+
 ## Implementation
 
 - `StatusBarHook` hooks `StatusIconContainer.onFinishInflate` and `onMeasure`, then posts insertion
@@ -99,8 +113,9 @@ Keep the signing key safe; an APK signed by another key cannot update an existin
   are skipped because sibling order does not reserve space in an overlay layout.
 - One tagged view is inserted per parent. Collapsed, shade and keyguard surfaces retain their
   existing detection and visibility settings.
-- `StatusBarSpacing` checks visible following siblings after layout and during sampling, and updates
-  only KSpeed's end margin. Its layout listener is removed when the view detaches.
+- `StatusBarSpacing` checks visible following siblings before drawing, after their layout is current,
+  and updates only KSpeed's end margin. If the margin changes, drawing waits for the resulting layout.
+  Stale bounds from a hidden indicator are ignored; the listener is removed when the view detaches.
 - `NetSpeedView` samples `TrafficStats` or radio interfaces and mirrors the local clock's tint.
 - `ConfigProvider` exposes only indicator settings over Binder; settings changes notify its observer.
 - The app's update checker and source links target **this fork**, not the upstream release feed.
