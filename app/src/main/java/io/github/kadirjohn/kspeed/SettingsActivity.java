@@ -27,6 +27,7 @@ import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -71,6 +72,15 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
         if (previewCard != null) {
             previewController = new StatusPreviewController(previewCard);
             updatePreview();
+            AppBarLayout appbar = findViewById(R.id.settings_appbar);
+            appbar.addOnOffsetChangedListener((bar, offset) -> {
+                float fadeRange = bar.getTotalScrollRange() * 0.7f;
+                float alpha = fadeRange > 0 ? Math.max(0f, 1f - Math.abs(offset) / fadeRange) : 1f;
+                previewCard.setAlpha(alpha);
+                previewCard.setImportantForAccessibility(alpha == 0f
+                        ? View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                        : View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+            });
         }
 
         if (savedInstanceState == null) {

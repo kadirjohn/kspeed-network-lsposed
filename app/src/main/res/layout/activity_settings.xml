@@ -19,7 +19,7 @@
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/settings_collapsing_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
+            android:layout_height="180dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
             app:title="@string/app_name"
             app:titleCollapseMode="scale"
@@ -27,7 +27,19 @@
             app:collapsedTitleTextAppearance="?attr/textAppearanceTitleLarge"
             app:expandedTitleTextAppearance="?attr/textAppearanceHeadlineMedium"
             app:expandedTitleMarginStart="20dp"
-            app:expandedTitleMarginBottom="16dp">
+            app:expandedTitleMarginBottom="76dp">
+
+            <!-- Scrolls and fades with the expanded header; only the toolbar stays pinned. -->
+            <include
+                android:id="@+id/settings_preview_card"
+                layout="@layout/view_preview_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginVertical="8dp"
+                app:layout_collapseMode="parallax"
+                app:layout_collapseParallaxMultiplier="0.5" />
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/settings_toolbar"
@@ -45,11 +57,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <!-- Pinned Status Bar Live Preview Card -->
-        <include
-            android:id="@+id/settings_preview_card"
-            layout="@layout/view_preview_card" />
 
         <!-- Preferences List Container -->
         <FrameLayout
