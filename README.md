@@ -26,10 +26,10 @@ the distinction between measured existing behaviour, automated tests and pending
 
 ## Install
 
-Build the debug APK or use a release from this fork when one is published:
+Download the signed APK from:
 [KSpeed Network releases](https://github.com/kadirjohn/kspeed-network-lsposed/releases).
 
-1. Install `app/build/outputs/apk/debug/app-debug.apk`.
+1. Install the release APK (or build `app/build/outputs/apk/debug/app-debug.apk` for local development).
 2. Disable the original **Net Speed Indicator** module if it is installed.
 3. Enable **KSpeed Network** in LSPosed / Vector and select **System UI** as its scope.
 4. Restart SystemUI or reboot, then open KSpeed Network to configure it.
@@ -50,6 +50,17 @@ All existing preference keys, types, defaults and options are retained:
 - Upload on top, idle-arrow dimming, hide when idle, and idle threshold.
 - Text size; status-bar tint matching or separate custom download/upload colours.
 - Optional notification-shade and lock-screen indicators.
+- A live status-bar preview that fades out as the settings header collapses.
+- Optional main-status-bar cellular-icon hiding, preserving Quick Settings and lock-screen icons.
+- Optional removal of spacing left by icons collapsed by Duo or other modules.
+
+On Neoteric Android 17, cellular signal, VoLTE and VoWiFi share a group: hiding cellular icons hides
+that group, rather than only VoWiFi. These new icon controls default to off and do not disable calls.
+The per-container exclusion API is ROM-dependent; its main-bar/Quick Settings behaviour was checked
+on the Xiaomi 25010PN30G running Neoteric Android 17.
+
+Official releases use a dedicated release signing key. A locally debug-signed installation cannot be
+updated directly with a release-signed APK. Export settings before switching signing identities.
 
 The indicator keeps its original two-line appearance, but each arrow now stays next to its own value.
 The previous 52 dp minimum width and full-width, end-aligned text rows have been removed.
