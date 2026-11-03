@@ -352,7 +352,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
         }
 
         /** Delegates everything to the stock adapter and keeps a flattened visible list in sync. */
-        private static final class VisiblePrefsAdapter
+        static final class VisiblePrefsAdapter
                 extends androidx.recyclerview.widget.RecyclerView.Adapter<
                         androidx.recyclerview.widget.RecyclerView.ViewHolder>
                 implements CategoryCardItemDecoration.VisiblePreferences {
@@ -361,32 +361,11 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
             private final PreferenceScreen screen;
             private final List<Preference> flattened = new ArrayList<>();
 
-            @SuppressWarnings({"unchecked", "rawtypes"})
-            VisiblePrefsAdapter(androidx.recyclerview.widget.RecyclerView.Adapter<?> stock,
-                                PreferenceScreen screen) {
+            VisiblePrefsAdapter(RecyclerView.Adapter<?> stock, PreferenceScreen screen) {
                 this.stock = stock;
                 this.screen = screen;
                 setHasStableIds(stock.hasStableIds());
-                stock.registerAdapterDataObserver(
-                        new androidx.recyclerview.widget.RecyclerView.AdapterDataObserver() {
-                    @Override
-                    public void onChanged() {
-                        rebuild();
-                    }
-                });
-                rebuild();
-            }
-
-            private void rebuild() {
-                flattened.clear();
-                flatten(screen, flattened);
-                setHasStableIds(stock.hasStableIds());
                 stock.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-                    private void refresh() {
-                        flattened.clear();
-                        flatten(screen, flattened);
-                        notifyDataSetChanged();
-                    }
                     @Override public void onChanged() { refresh(); }
                     @Override public void onItemRangeChanged(int start, int count) { refresh(); }
                     @Override public void onItemRangeChanged(int start, int count, Object payload) { refresh(); }
@@ -394,6 +373,17 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
                     @Override public void onItemRangeRemoved(int start, int count) { refresh(); }
                     @Override public void onItemRangeMoved(int from, int to, int count) { refresh(); }
                 });
+                rebuild();
+            }
+
+            private void refresh() {
+                rebuild();
+                notifyDataSetChanged();
+            }
+
+            private void rebuild() {
+                flattened.clear();
+                flatten(screen, flattened);
             }
 
             private static void flatten(PreferenceGroup group, List<Preference> out) {
