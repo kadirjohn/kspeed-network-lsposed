@@ -11,9 +11,9 @@ import android.view.View;
 import androidx.annotation.AttrRes;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
-import androidx.preference.PreferenceGroupAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -23,21 +23,38 @@ import java.util.List;
  * ItemDecoration that groups preference items into rounded Material 3 surfaceContainer cards,
  * providing generous internal margins so icons never touch the card outline,
  * and excluding the About section from category outlines.
+ *
+ * The visible-preference list is supplied by {@link SettingsFragment#onCreateAdapter} via
+ * {@link VisiblePreferences}, which flattens the PreferenceScreen using public APIs only
+ * (matching androidx.preference's own flattening rules: invisible preferences and
+ * non-visible groups are skipped, and a group's children are inlined when the group is on
+ * the same screen as its children). This replaces the previous direct use of the
+ * library-restricted PreferenceGroupAdapter and removes the RestrictedApi lint errors.
  */
 public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
+
+    /** A live view of the flattened visible-preference list for the bound adapter. */
+    public interface VisiblePreferences {
+        @Nullable
+        Preference get(int position);
+
+        int size();
+    }
 
     private final Paint cardPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float cornerRadius;
     private final int marginHorizontal;
     private final int marginBetweenCards;
+    private final VisiblePreferences visible;
 
     public static class GroupRange {
         public int startPos;
         public int endPos;
     }
 
-    public CategoryCardItemDecoration(Context context) {
+    public CategoryCardItemDecoration(Context context, VisiblePreferences visible) {
+        this.visible = visible;
         cornerRadius = dpToPx(context, 20);
         // Enlarged outline width (closer to screen edge with 10dp margin)
         marginHorizontal = (int) dpToPx(context, 10);
@@ -59,19 +76,15 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
     @Override
     public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
                                @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
-        RecyclerView.Adapter<?> adapter = parent.getAdapter();
-        if (!(adapter instanceof PreferenceGroupAdapter)) {
-            super.getItemOffsets(outRect, view, parent, state);
-            return;
-        }
-
-        PreferenceGroupAdapter pga = (PreferenceGroupAdapter) adapter;
         int pos = parent.getChildAdapterPosition(view);
         if (pos == RecyclerView.NO_POSITION) {
             return;
         }
 
-        Preference pref = pga.getItem(pos);
+        Preference pref = visible.get(pos);
+        if (pref == null) {
+            return;
+        }
         if (pref instanceof PreferenceCategory) {
             outRect.top = marginBetweenCards;
             outRect.bottom = (int) dpToPx(view.getContext(), 2);
@@ -80,8 +93,8 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
             outRect.bottom = (int) dpToPx(view.getContext(), 24);
         } else {
             boolean isLast = true;
-            if (pos + 1 < pga.getItemCount()) {
-                Preference next = pga.getItem(pos + 1);
+            Preference next = visible.get(pos + 1);
+            if (next != null) {
                 isLast = (next instanceof PreferenceCategory) || (next instanceof AboutCardPreference);
             }
             if (isLast) {
@@ -92,13 +105,7 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
-        RecyclerView.Adapter<?> adapter = parent.getAdapter();
-        if (!(adapter instanceof PreferenceGroupAdapter)) {
-            return;
-        }
-
-        PreferenceGroupAdapter pga = (PreferenceGroupAdapter) adapter;
-        List<GroupRange> groups = findGroups(pga);
+        List<GroupRange> groups = findGroups();
 
         for (GroupRange g : groups) {
             View firstChild = null;
@@ -130,13 +137,16 @@ public class CategoryCardItemDecoration extends RecyclerView.ItemDecoration {
         }
     }
 
-    private List<GroupRange> findGroups(PreferenceGroupAdapter pga) {
+    private List<GroupRange> findGroups() {
         List<GroupRange> groups = new ArrayList<>();
-        int count = pga.getItemCount();
+        int count = visible.size();
         GroupRange current = null;
 
         for (int i = 0; i < count; i++) {
-            Preference p = pga.getItem(i);
+            Preference p = visible.get(i);
+            if (p == null) {
+                continue;
+            }
             // Completely exclude About section from category outline cards
             if (p instanceof AboutCardPreference || "cat_about".equals(p.getKey())) {
                 if (current != null) {

@@ -12,6 +12,7 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,6 +24,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,7 +36,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -332,6 +336,128 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
             Toast.makeText(ctx, getString(R.string.hint_restart), Toast.LENGTH_LONG).show();
         }
 
+        /**
+         * Builds the stock adapter and wraps it in {@link VisiblePrefsAdapter}, which exposes
+         * a public-API flattened view of the visible preferences for
+         * {@link CategoryCardItemDecoration} (replacing direct use of the library-restricted
+         * PreferenceGroupAdapter). Flatten rules mirror androidx.preference 1.2.1: invisible
+         * preferences are skipped; a group's children are inlined when the group is on the same
+         * screen as its children (always true for this app's single-level categories); no
+         * expandable groups are used here.
+         */
+        @Override
+        protected androidx.recyclerview.widget.RecyclerView.Adapter<?> onCreateAdapter(
+                @NonNull PreferenceScreen preferenceScreen) {
+            return new VisiblePrefsAdapter(super.onCreateAdapter(preferenceScreen), preferenceScreen);
+        }
+
+        /** Delegates everything to the stock adapter and keeps a flattened visible list in sync. */
+        private static final class VisiblePrefsAdapter
+                extends androidx.recyclerview.widget.RecyclerView.Adapter<
+                        androidx.recyclerview.widget.RecyclerView.ViewHolder>
+                implements CategoryCardItemDecoration.VisiblePreferences {
+
+            private final androidx.recyclerview.widget.RecyclerView.Adapter<?> stock;
+            private final PreferenceScreen screen;
+            private final List<Preference> flattened = new ArrayList<>();
+
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            VisiblePrefsAdapter(androidx.recyclerview.widget.RecyclerView.Adapter<?> stock,
+                                PreferenceScreen screen) {
+                this.stock = stock;
+                this.screen = screen;
+                setHasStableIds(stock.hasStableIds());
+                stock.registerAdapterDataObserver(
+                        new androidx.recyclerview.widget.RecyclerView.AdapterDataObserver() {
+                    @Override
+                    public void onChanged() {
+                        rebuild();
+                    }
+                });
+                rebuild();
+            }
+
+            private void rebuild() {
+                flattened.clear();
+                flatten(screen, flattened);
+                setHasStableIds(stock.hasStableIds());
+                stock.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                    private void refresh() {
+                        flattened.clear();
+                        flatten(screen, flattened);
+                        notifyDataSetChanged();
+                    }
+                    @Override public void onChanged() { refresh(); }
+                    @Override public void onItemRangeChanged(int start, int count) { refresh(); }
+                    @Override public void onItemRangeChanged(int start, int count, Object payload) { refresh(); }
+                    @Override public void onItemRangeInserted(int start, int count) { refresh(); }
+                    @Override public void onItemRangeRemoved(int start, int count) { refresh(); }
+                    @Override public void onItemRangeMoved(int from, int to, int count) { refresh(); }
+                });
+            }
+
+            private static void flatten(PreferenceGroup group, List<Preference> out) {
+                for (int i = 0; i < group.getPreferenceCount(); i++) {
+                    Preference p = group.getPreference(i);
+                    if (!p.isVisible()) {
+                        continue;
+                    }
+                    out.add(p);
+                    // isOnSameScreenAsChildren() is protected, but every nested group in this
+                    // screen is a plain PreferenceCategory declared in XML without
+                    // initialExpandedChildrenCount, so its children are always inlined —
+                    // matching the stock flatten for this screen shape.
+                    if (p instanceof PreferenceCategory) {
+                        flatten((PreferenceCategory) p, out);
+                    }
+                }
+            }
+
+                @Override
+                public Preference get(int position) {
+                    return (position >= 0 && position < flattened.size())
+                            ? flattened.get(position) : null;
+                }
+
+                @Override
+                public int size() {
+                    return flattened.size();
+                }
+
+            @Override
+            public int getItemCount() {
+                return stock.getItemCount();
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return stock.getItemId(position);
+            }
+
+            @Override
+            public int getItemViewType(int position) {
+                return stock.getItemViewType(position);
+            }
+
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            @NonNull
+            @Override
+            public androidx.recyclerview.widget.RecyclerView.ViewHolder onCreateViewHolder(
+                    @NonNull ViewGroup parent, int viewType) {
+                RecyclerView.Adapter raw = stock;
+                return raw.onCreateViewHolder(parent, viewType);
+            }
+
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            @Override
+            public void onBindViewHolder(
+                    @NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder holder,
+                    int position) {
+                RecyclerView.Adapter raw = stock;
+                raw.onBindViewHolder(holder, position);
+            }
+        }
+
         @Override
         public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
@@ -355,7 +481,11 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
                 public void onChildViewDetachedFromWindow(@NonNull View child) {}
             });
 
-            rv.addItemDecoration(new CategoryCardItemDecoration(requireContext()));
+            androidx.recyclerview.widget.RecyclerView.Adapter<?> adapter = rv.getAdapter();
+            if (adapter instanceof CategoryCardItemDecoration.VisiblePreferences) {
+                rv.addItemDecoration(new CategoryCardItemDecoration(requireContext(),
+                        (CategoryCardItemDecoration.VisiblePreferences) adapter));
+            }
             updateDependencies();
         }
 
