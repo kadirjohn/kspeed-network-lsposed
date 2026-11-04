@@ -275,6 +275,17 @@ public class StatusBarHook {
         if (hasOurChild(parent)) {
             return;
         }
+        // One indicator per WINDOW, not per surface: on ROMs where the lock bar and the
+        // main bar share one visible window tree (measured: Xiaomi reference ROM renders
+        // both the keyguard-header cluster and the collapsed cluster in the same bar),
+        // inserting per surface doubled the indicator. The first insert in a window wins;
+        // later surfaces in the same window are skipped. Shade keeps its own window.
+        View root = statusIcons.getRootView();
+        if (root != null && rootHasOurView(root)) {
+            XposedBridge.log(Constants.LOG_TAG + " skip '" + surface
+                    + "': its window already hosts an indicator");
+            return;
+        }
         if (!(parent instanceof LinearLayout)
                 || ((LinearLayout) parent).getOrientation() != LinearLayout.HORIZONTAL) {
             // A sibling index only reserves space in a flowing horizontal container. On an
@@ -300,8 +311,14 @@ public class StatusBarHook {
         //    on the clock side of the bar (left cluster ROMs).
         ViewGroup target = parent;
         int idx = parent.indexOfChild(statusIcons);
-        if (noVisibleSiblingAfter(statusIcons, parent)
-                || insideComposeInterop(parent) || isLeftSideCluster(statusIcons)) {
+        // Escape upward ONLY when the parent is inside a Compose interop chain (where a
+        // classic child measures 0 and never renders — measured on the Pixel A17 ROM) or
+        // when layout proves the cluster sits on the clock side. A missing sibling after
+        // statusIcons is NOT enough: on the reference Xiaomi ROM the Compose battery
+        // follows statusIcons in this parent yet renders fine, and escaping there
+        // duplicated the indicator and clipped it below the bar at larger text sizes
+        // (user-reported). The classic before-statusIcons insert stays the default.
+        if (insideComposeInterop(parent) || isLeftSideCluster(statusIcons)) {
             ViewGroup upper = findBarSpanningHorizontal((View) vp);
             if (upper != null && upper != parent && !hasOurChild(upper)) {
                 target = upper;
@@ -382,6 +399,23 @@ public class StatusBarHook {
     }
 
     /**
+     * True when the statusIcons container is the last visible child of its parent — no
+     * battery or other cluster member follows it in the same container. On the reference
+     * ROM the battery sits right after statusIcons in this parent; on the Pixel A17 ROM
+     * the parent holds the single icon container while the battery lives one classic
+     * level higher. Used to decide the insert target.
+     */
+    private static boolean noVisibleSiblingAfter(View statusIcons, ViewGroup parent) {
+        int idx = parent.indexOfChild(statusIcons);
+        for (int i = idx + 1; i < parent.getChildCount(); i++) {
+            if (parent.getChildAt(i).getVisibility() == View.VISIBLE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Index in {@code outer} of the child whose subtree contains {@code descendant} — i.e.
      * where to insert so the inserted view lands immediately BEFORE that whole subtree.
      * Returns -1 when the descendant is not under this container.
@@ -400,23 +434,6 @@ public class StatusBarHook {
             }
         }
         return -1;
-    }
-
-    /**
-     * True when the statusIcons container is the last visible child of its parent — no
-     * battery or other cluster member follows it in the same container. On the reference
-     * ROM the battery sits right after statusIcons in this parent; on the Pixel A17 ROM
-     * the parent holds the single icon container while the battery lives one classic
-     * level higher. Used to decide the insert target.
-     */
-    private static boolean noVisibleSiblingAfter(View statusIcons, ViewGroup parent) {
-        int idx = parent.indexOfChild(statusIcons);
-        for (int i = idx + 1; i < parent.getChildCount(); i++) {
-            if (parent.getChildAt(i).getVisibility() == View.VISIBLE) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -487,6 +504,29 @@ public class StatusBarHook {
         for (int i = 0; i < parent.getChildCount(); i++) {
             if (NetSpeedView.VIEW_TAG.equals(parent.getChildAt(i).getTag())) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    /** True when any NetSpeedView lives anywhere under the given root (window). */
+    private static boolean rootHasOurView(View root) {
+        return findOurs(root, 0);
+    }
+
+    private static boolean findOurs(View v, int depth) {
+        if (depth > 50 || v == null) {
+            return false;
+        }
+        if (NetSpeedView.VIEW_TAG.equals(v.getTag())) {
+            return true;
+        }
+        if (v instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) v;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                if (findOurs(vg.getChildAt(i), depth + 1)) {
+                    return true;
+                }
             }
         }
         return false;
