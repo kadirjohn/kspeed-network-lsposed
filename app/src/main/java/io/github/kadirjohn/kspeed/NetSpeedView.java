@@ -126,9 +126,15 @@ public class NetSpeedView extends LinearLayout {
         registerObserver();
         refreshConfig();
         seedBaseline();
-        if (getWindowVisibility() == VISIBLE) {
-            startLoop();
-        }
+        XposedBridge.log(Constants.LOG_TAG + " attach surface=" + surface
+                + " windowVis=" + getWindowVisibility() + " shown=" + isShown());
+        // Start the loop unconditionally: on some ROMs the surface's window reports
+        // GONE at attach time and never sends a later onWindowVisibilityChanged(VISIBLE),
+        // which previously left the shade/keyguard/collapsed loops dead and the indicator
+        // never updated (measured on the Pixel A17 ROM: attach windowVis=0, no callback).
+        // The loop is cheap; a GONE view's tick exits early via the visibility check in
+        // update(), and stopLoop() still runs on detach/window-GONE.
+        startLoop();
     }
 
     @Override
@@ -330,10 +336,16 @@ public class NetSpeedView extends LinearLayout {
     private void setIndicatorVisibility(int visibility, String reason) {
         boolean changed = getVisibility() != visibility;
         setVisibility(visibility);
-        if (changed && Log.isLoggable("KSpeed", Log.DEBUG)) {
-            Log.d("KSpeed", "surface=" + surface + " visibility=" + visibility
-                    + " reason=" + reason + " idleThresholdKBps="
-                    + getInt(Constants.KEY_IDLE_THRESHOLD, Constants.DEF_IDLE_THRESHOLD));
+        if (changed) {
+            // Persistent (LSPosed module log): visibility transitions are the core signal
+            // when diagnosing per-surface behaviour across ROMs.
+            XposedBridge.log(Constants.LOG_TAG + " visibility surface=" + surface
+                    + " → " + (visibility == VISIBLE ? "VISIBLE" : "GONE")
+                    + " reason=" + reason
+                    + " windowVis=" + getWindowVisibility()
+                    + " idleKBps=" + getInt(Constants.KEY_IDLE_THRESHOLD, Constants.DEF_IDLE_THRESHOLD)
+                    + " showLock=" + getBool(Constants.KEY_SHOW_LOCKSCREEN, Constants.DEF_SHOW_LOCKSCREEN)
+                    + " cfgKeys=" + config.size());
         }
     }
 
